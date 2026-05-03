@@ -1,0 +1,325 @@
+package controllers
+
+import (
+	"encoding/json"
+	"fmt"
+	"html/template"
+	"net/http"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/mbarek-hani/FluxHUB/database"
+	"github.com/mbarek-hani/FluxHUB/models"
+	"github.com/mbarek-hani/FluxHUB/services"
+)
+
+type AdminUIController struct {
+	gitManager *services.GitManager
+	signer     *services.Signer
+	packager   *services.Packager
+	scanner    *services.CodeScanner
+	renderer   Renderer
+}
+
+func NewAdminUIController(
+	gm *services.GitManager,
+	sg *services.Signer,
+	pk *services.Packager,
+	sc *services.CodeScanner,
+	renderer Renderer,
+) *AdminUIController {
+	return &AdminUIController{
+		gitManager: gm,
+		signer:     sg,
+		packager:   pk,
+		scanner:    sc,
+		renderer:   renderer,
+	}
+}
+
+func (ctrl *AdminUIController) getUsername(c *gin.Context) string {
+	if u, ok := c.Get("admin_username"); ok {
+		return fmt.Sprintf("%v", u)
+	}
+	return "admin"
+}
+
+func (ctrl *AdminUIController) Dashboard(c *gin.Context) {
+	var totalPlugins, pending, approved, rejected int64
+	database.DB.Model(&models.Plugin{}).Count(&totalPlugins)
+	database.DB.Model(&models.Plugin{}).Where("status = ?", "pending").Count(&pending)
+	database.DB.Model(&models.Plugin{}).Where("status = ?", "approved").Count(&approved)
+	database.DB.Model(&models.Plugin{}).Where("status = ?", "rejected").Count(&rejected)
+
+	var recentPlugins []models.Plugin
+	database.DB.Order("created_at DESC").Limit(10).Find(&recentPlugins)
+
+	// Pre-format dates for each plugin
+	type PluginRow struct {
+		ID             string
+		Name           string
+		DeveloperID    string
+		CurrentVersion string
+		Status         string
+		CreatedAt      string
+	}
+
+	rows := make([]PluginRow, len(recentPlugins))
+	for i, p := range recentPlugins {
+		rows[i] = PluginRow{
+			ID:             p.ID,
+			Name:           p.Name,
+			DeveloperID:    p.DeveloperID,
+			CurrentVersion: p.CurrentVersion,
+			Status:         string(p.Status),
+			CreatedAt:      p.CreatedAt.Format("Jan 02, 15:04"),
+		}
+	}
+
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	ctrl.renderer.Render(c.Writer, "dashboard", gin.H{
+		"Username":      ctrl.getUsername(c),
+		"TotalPlugins":  totalPlugins,
+		"Pending":       pending,
+		"Approved":      approved,
+		"Rejected":      rejected,
+		"RecentPlugins": rows,
+		"Active":        "dashboard",
+	})
+}
+
+func (ctrl *AdminUIController) PluginsList(c *gin.Context) {
+	statusFilter := c.DefaultQuery("status", "all")
+	var plugins []models.Plugin
+	query := database.DB.Preload("Versions").Order("created_at DESC")
+	if statusFilter != "all" {
+		query = query.Where("status = ?", statusFilter)
+	}
+	query.Find(&plugins)
+
+	type PluginRow struct {
+		ID             string
+		Name           string
+		Description    string
+		DeveloperID    string
+		CurrentVersion string
+		Status         string
+		VersionCount   int
+		CreatedAt      time.Time
+	}
+
+	rows := make([]PluginRow, len(plugins))
+	for i, p := range plugins {
+		rows[i] = PluginRow{
+			ID:             p.ID,
+			Name:           p.Name,
+			Description:    p.Description,
+			DeveloperID:    p.DeveloperID,
+			CurrentVersion: p.CurrentVersion,
+			Status:         string(p.Status),
+			VersionCount:   len(p.Versions),
+			CreatedAt:      p.CreatedAt,
+		}
+	}
+
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	ctrl.renderer.Render(c.Writer, "plugins_list", gin.H{
+		"Username": ctrl.getUsername(c),
+		"Plugins":  rows,
+		"Filter":   statusFilter,
+		"Active":   "plugins",
+	})
+}
+
+func (ctrl *AdminUIController) PluginReview(c *gin.Context) {
+	id := c.Param("id")
+
+	var plugin models.Plugin
+	if err := database.DB.Preload("Versions").First(&plugin, "id = ?", id).Error; err != nil {
+		c.Redirect(http.StatusFound, "/admin/plugins")
+		return
+	}
+
+	var scanReport models.ScanReport
+	if plugin.ScanResult != "" {
+		json.Unmarshal([]byte(plugin.ScanResult), &scanReport)
+	}
+
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	ctrl.renderer.Render(c.Writer, "plugin_review", gin.H{
+		"Username":     ctrl.getUsername(c),
+		"Plugin":       plugin,
+		"ScanReport":   scanReport,
+		"PluginStatus": string(plugin.Status),
+		"CreatedAt":    plugin.CreatedAt.Format("January 02, 2006 15:04 UTC"), // ← pre-format
+		"Active":       "plugins",
+	})
+}
+
+func (ctrl *AdminUIController) PluginBrowse(c *gin.Context) {
+	id := c.Param("id")
+	ref := c.DefaultQuery("ref", "")
+
+	var plugin models.Plugin
+	if err := database.DB.Preload("Versions").First(&plugin, "id = ?", id).Error; err != nil {
+		c.Redirect(http.StatusFound, "/admin/plugins")
+		return
+	}
+
+	tags, _ := ctrl.gitManager.GetTags(plugin.ID)
+	if ref == "" && len(tags) > 0 {
+		ref = tags[0]
+	} else if ref == "" {
+		ref = "HEAD"
+	}
+
+	tagsJSON, _ := json.Marshal(tags)
+
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	ctrl.renderer.Render(c.Writer, "plugin_browse", gin.H{
+		"Username":   ctrl.getUsername(c),
+		"Plugin":     plugin,
+		"Tags":       tags,
+		"TagsJSON":   template.JS(tagsJSON),
+		"CurrentRef": ref,
+		"Active":     "plugins",
+	})
+}
+
+func (ctrl *AdminUIController) PluginDiff(c *gin.Context) {
+	id := c.Param("id")
+
+	var plugin models.Plugin
+	if err := database.DB.Preload("Versions").First(&plugin, "id = ?", id).Error; err != nil {
+		c.Redirect(http.StatusFound, "/admin/plugins")
+		return
+	}
+
+	tags, _ := ctrl.gitManager.GetTags(plugin.ID)
+	tagsJSON, _ := json.Marshal(tags)
+
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	ctrl.renderer.Render(c.Writer, "plugin_diff", gin.H{
+		"Username": ctrl.getUsername(c),
+		"Plugin":   plugin,
+		"Tags":     tags,
+		"TagsJSON": template.JS(tagsJSON),
+		"FromRef":  c.Query("from"),
+		"ToRef":    c.Query("to"),
+		"Active":   "plugins",
+	})
+}
+
+// ---- AJAX API ----
+
+func (ctrl *AdminUIController) APIGetFileTree(c *gin.Context) {
+	id := c.Param("id")
+	ref := c.DefaultQuery("ref", "HEAD")
+	tree, err := ctrl.gitManager.GetFileTree(id, ref)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, tree)
+}
+
+func (ctrl *AdminUIController) APIGetFileContent(c *gin.Context) {
+	id := c.Param("id")
+	ref := c.DefaultQuery("ref", "HEAD")
+	filePath := c.Query("path")
+	if filePath == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "path required"})
+		return
+	}
+	content, err := ctrl.gitManager.GetFileContent(id, ref, filePath)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"path": filePath, "content": content})
+}
+
+func (ctrl *AdminUIController) APIGetDiff(c *gin.Context) {
+	id := c.Param("id")
+	fromRef := c.Query("from")
+	toRef := c.Query("to")
+	if fromRef == "" || toRef == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "from and to required"})
+		return
+	}
+	diff, err := ctrl.gitManager.GenerateDiff(id, fromRef, toRef)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"diff": diff})
+}
+
+func (ctrl *AdminUIController) APIApprovePlugin(c *gin.Context) {
+	id := c.Param("id")
+	var req struct {
+		Version string `json:"version" binding:"required"`
+		Comment string `json:"comment"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var plugin models.Plugin
+	if err := database.DB.First(&plugin, "id = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "plugin not found"})
+		return
+	}
+
+	var version models.Version
+	if err := database.DB.Where("plugin_id = ? AND tag = ?", id, req.Version).First(&version).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "version not found"})
+		return
+	}
+
+	if err := ctrl.gitManager.CheckoutTag(id, req.Version); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "checkout failed: " + err.Error()})
+		return
+	}
+
+	repoPath := ctrl.gitManager.GetRepoPathForPlugin(id)
+	zipPath, err := ctrl.packager.PackagePlugin(repoPath, id, req.Version)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "packaging failed: " + err.Error()})
+		return
+	}
+
+	signature, sha256Hash, err := ctrl.signer.SignFile(zipPath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "signing failed: " + err.Error()})
+		return
+	}
+
+	database.DB.Model(&version).Updates(map[string]interface{}{
+		"signature":   signature,
+		"sha256_hash": sha256Hash,
+		"zip_path":    zipPath,
+		"changelog":   req.Comment,
+	})
+
+	database.DB.Model(&plugin).Updates(map[string]interface{}{
+		"status":          models.StatusApproved,
+		"current_version": req.Version,
+	})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Plugin approved", "sha256": sha256Hash})
+}
+
+func (ctrl *AdminUIController) APIRejectPlugin(c *gin.Context) {
+	id := c.Param("id")
+	var req struct {
+		Reason string `json:"reason" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	database.DB.Model(&models.Plugin{}).Where("id = ?", id).Update("status", models.StatusRejected)
+	c.JSON(http.StatusOK, gin.H{"message": "Plugin rejected"})
+}

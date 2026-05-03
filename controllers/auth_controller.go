@@ -1,26 +1,29 @@
 package controllers
 
 import (
-	"html/template"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/mbarek-hani/FluxHUB/database"
 	"github.com/mbarek-hani/FluxHUB/models"
 	"github.com/mbarek-hani/FluxHUB/services"
+	"github.com/gin-gonic/gin"
 )
 
-type AuthController struct {
-	sessions  *services.SessionStore
-	templates *template.Template
+// Renderer interface so controllers don't depend on main package
+type Renderer interface {
+	Render(w interface{ Write([]byte) (int, error) }, name string, data interface{}) error
 }
 
-func NewAuthController(sessions *services.SessionStore, tmpl *template.Template) *AuthController {
-	return &AuthController{sessions: sessions, templates: tmpl}
+type AuthController struct {
+	sessions *services.SessionStore
+	renderer Renderer
+}
+
+func NewAuthController(sessions *services.SessionStore, renderer Renderer) *AuthController {
+	return &AuthController{sessions: sessions, renderer: renderer}
 }
 
 func (ac *AuthController) ShowLogin(c *gin.Context) {
-	// If already logged in, redirect
 	if cookie, err := c.Cookie("flux_session"); err == nil {
 		if _, ok := ac.sessions.Get(cookie); ok {
 			c.Redirect(http.StatusFound, "/admin/dashboard")
@@ -28,7 +31,8 @@ func (ac *AuthController) ShowLogin(c *gin.Context) {
 		}
 	}
 
-	ac.templates.ExecuteTemplate(c.Writer, "login.html", gin.H{
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	ac.renderer.Render(c.Writer, "login", gin.H{
 		"Error": c.Query("error"),
 	})
 }
