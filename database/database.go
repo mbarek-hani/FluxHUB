@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/flux/marketplace/models"
+	"github.com/mbarek-hani/FluxHUB/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
