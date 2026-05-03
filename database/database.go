@@ -14,16 +14,11 @@ import (
 
 var DB *gorm.DB
 
-// Connect initialise la connexion à la base de données
 func Connect() {
 	var err error
 	var dialector gorm.Dialector
 
-	// Choix du driver selon la variable d'environnement
-	dbDriver := os.Getenv("DB_DRIVER")
-	if dbDriver == "" {
-		dbDriver = "sqlite"
-	}
+	dbDriver := getEnv("DB_DRIVER", "sqlite")
 
 	switch dbDriver {
 	case "postgres":
@@ -32,45 +27,46 @@ func Connect() {
 			getEnv("DB_HOST", "localhost"),
 			getEnv("DB_USER", "postgres"),
 			getEnv("DB_PASSWORD", ""),
-			getEnv("DB_NAME", "flux_hub"),
+			getEnv("DB_NAME", "flux_marketplace"),
 			getEnv("DB_PORT", "5432"),
 		)
 		dialector = postgres.Open(dsn)
-
-	default: // sqlite
-		dbPath := getEnv("SQLITE_PATH", "./FluxHUB.db")
+	default:
+		dbPath := getEnv("SQLITE_PATH", "./flux_marketplace.db")
 		dialector = sqlite.Open(dbPath)
 	}
 
-	gormConfig := &gorm.Config{
+	DB, err = gorm.Open(dialector, &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
-	}
-
-	DB, err = gorm.Open(dialector, gormConfig)
+	})
 	if err != nil {
-		log.Fatalf("Impossible de se connecter à la base de données: %v", err)
+		log.Fatalf("DB connection failed: %v", err)
 	}
 
-	log.Printf("Base de données connectée (%s)", dbDriver)
+	log.Printf("DB connected (%s)", dbDriver)
 
-	// Auto-migration des schémas
-	if err := autoMigrate(); err != nil {
-		log.Fatalf("Erreur de migration: %v", err)
+	DB.AutoMigrate(&models.Plugin{}, &models.Version{}, &models.Admin{})
+
+	seedAdmin()
+}
+
+func seedAdmin() {
+	var count int64
+	DB.Model(&models.Admin{}).Count(&count)
+	if count == 0 {
+		admin := models.Admin{
+			Username: getEnv("ADMIN_USERNAME", "admin"),
+		}
+		password := getEnv("ADMIN_PASSWORD", "flux2024!")
+		admin.SetPassword(password)
+		DB.Create(&admin)
+		log.Printf("Default admin created: %s / %s", admin.Username, password)
 	}
 }
 
-// autoMigrate exécute les migrations automatiques
-func autoMigrate() error {
-	return DB.AutoMigrate(
-		&models.Plugin{},
-		&models.Version{},
-	)
-}
-
-// getEnv retourne la valeur d'une variable d'environnement ou une valeur par défaut
 func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
+	if v := os.Getenv(key); v != "" {
+		return v
 	}
 	return defaultValue
 }
