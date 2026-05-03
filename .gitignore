@@ -1,4 +1,20 @@
-.env
 vendor
-storage
-keys
+# Binaire compilé
+FluxHUB
+*.exe
+
+# Base de données SQLite
+*.db
+
+# Clés RSA
+keys/
+*.pem
+
+# Stockage des dépôts clonés et ZIPs
+storage/
+
+# Variables d'environnement
+.env
+
+# Logs
+*.log
