@@ -1,0 +1,70 @@
+{{define "page-content"}}
+<div class="top-bar">
+    <h1>Dashboard</h1>
+</div>
+
+<div class="content">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="label">Total Plugins</div>
+            <div class="value blue">{{.TotalPlugins}}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Pending Review</div>
+            <div class="value orange">{{.Pending}}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Approved</div>
+            <div class="value green">{{.Approved}}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Rejected</div>
+            <div class="value red">{{.Rejected}}</div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <div class="table-header">
+            <h2>Recent Submissions</h2>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Developer</th>
+                    <th>Version</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .RecentPlugins}}
+                <tr>
+                    <td><strong>{{.Name}}</strong></td>
+                    <td>{{.DeveloperID}}</td>
+                    <td><code>{{.CurrentVersion}}</code></td>
+                    <td>
+                        <span class="badge badge-{{.Status}}">{{.Status}}</span>
+                    </td>
+                    <td>{{fmtDate .CreatedAt}}</td>
+                    <td>
+                        <a
+                            href="/admin/plugins/{{.ID}}/review"
+                            class="btn btn-outline btn-sm"
+                            >Review</a
+                        >
+                    </td>
+                </tr>
+                {{else}}
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        No plugins submitted yet.
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}

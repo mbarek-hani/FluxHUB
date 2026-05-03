@@ -1,0 +1,130 @@
+{{define "page-content"}}
+<div class="top-bar">
+    <div>
+        <div class="breadcrumb">
+            <a href="/admin/plugins">Plugins</a>
+            <span class="sep">/</span>
+            <a href="/admin/plugins/{{.Plugin.ID}}/review">{{.Plugin.Name}}</a>
+            <span class="sep">/</span>
+            <span>Browse</span>
+        </div>
+        <h1 style="margin-top: 4px">
+            {{.Plugin.Name}}
+            <span class="badge badge-{{.Plugin.Status}}"
+                >{{.Plugin.Status}}</span
+            >
+        </h1>
+    </div>
+    <div class="btn-group">
+        <a href="/admin/plugins/{{.Plugin.ID}}/review" class="btn btn-outline"
+            >Review</a
+        >
+        <a href="/admin/plugins/{{.Plugin.ID}}/diff" class="btn btn-outline"
+            >View Diff</a
+        >
+    </div>
+</div>
+
+<div
+    class="content"
+    x-data="fileBrowser('{{.Plugin.ID}}', '{{.CurrentRef}}', {{.TagsJSON}})"
+>
+    <div class="ref-selector">
+        <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+        >
+            <line x1="6" y1="3" x2="6" y2="15" />
+            <circle cx="18" cy="6" r="3" />
+            <circle cx="6" cy="18" r="3" />
+            <path d="M18 9a9 9 0 0 1-9 9" />
+        </svg>
+        <label>Tag / Ref:</label>
+        <select x-model="currentRef" @change="loadTree()">
+            <template x-for="tag in tags" :key="tag">
+                <option
+                    :value="tag"
+                    x-text="tag"
+                    :selected="tag === currentRef"
+                ></option>
+            </template>
+            <option value="HEAD">HEAD</option>
+        </select>
+        <span
+            style="color: var(--text-muted); font-size: 12px"
+            x-show="loading"
+        >
+            <span class="spinner"></span> Loading...
+        </span>
+    </div>
+
+    <div class="browser-layout">
+        <div class="file-tree-panel">
+            <div class="file-tree-header">
+                <span>Files</span>
+                <span
+                    style="
+                        font-weight: 400;
+                        font-size: 12px;
+                        color: var(--text-muted);
+                    "
+                    x-text="fileCount + ' files'"
+                ></span>
+            </div>
+            <div class="file-tree">
+                <div id="file-tree-root"></div>
+            </div>
+        </div>
+
+        <div class="code-panel">
+            <div class="code-header" x-show="currentFile">
+                <span x-text="currentFile"></span>
+                <span
+                    style="color: var(--text-muted); font-size: 12px"
+                    x-text="fileSize"
+                ></span>
+            </div>
+
+            <div class="code-placeholder" x-show="!currentFile && !fileLoading">
+                <div style="text-align: center">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        style="
+                            width: 48px;
+                            height: 48px;
+                            opacity: 0.3;
+                            margin-bottom: 12px;
+                        "
+                    >
+                        <path
+                            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                        />
+                        <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                    <p>Select a file to view its contents</p>
+                </div>
+            </div>
+
+            <div class="loading-overlay" x-show="fileLoading">
+                <span class="spinner" style="width: 32px; height: 32px"></span>
+            </div>
+
+            <div class="code-content" x-show="currentFile && !fileLoading">
+                <div style="display: flex">
+                    <div class="line-numbers" id="line-numbers"></div>
+                    <pre
+                        class="code-lines"
+                    ><code id="code-display"></code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}

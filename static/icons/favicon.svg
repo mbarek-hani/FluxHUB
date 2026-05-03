@@ -1,0 +1,13 @@
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        path { 
+            stroke: #10b981; /* La couleur emerald-500 de Tailwind */
+        }
+        /* Optionnel : adapter la couleur si l'utilisateur est en mode sombre sur son OS */
+        @media (prefers-color-scheme: dark) {
+            path { stroke: #34d399; } /* Un vert plus clair pour ressortir sur le noir */
+        }
+    </style>
+    <path d="M4 17L10 11L14 15L20 9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M16 9H20V13" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
