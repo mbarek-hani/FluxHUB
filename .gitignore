@@ -1,6 +1,6 @@
 vendor
 # Binaire compilé
-FluxHUB
+tmp
 *.exe
 
 # Base de données SQLite
