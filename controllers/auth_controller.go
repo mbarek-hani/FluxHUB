@@ -3,13 +3,12 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/mbarek-hani/FluxHUB/database"
 	"github.com/mbarek-hani/FluxHUB/models"
 	"github.com/mbarek-hani/FluxHUB/services"
-	"github.com/gin-gonic/gin"
 )
 
-// Renderer interface so controllers don't depend on main package
 type Renderer interface {
 	Render(w interface{ Write([]byte) (int, error) }, name string, data interface{}) error
 }
@@ -25,12 +24,11 @@ func NewAuthController(sessions *services.SessionStore, renderer Renderer) *Auth
 
 func (ac *AuthController) ShowLogin(c *gin.Context) {
 	if cookie, err := c.Cookie("flux_session"); err == nil {
-		if _, ok := ac.sessions.Get(cookie); ok {
+		if sess, ok := ac.sessions.Get(cookie); ok && sess.Kind == services.SessionAdmin {
 			c.Redirect(http.StatusFound, "/admin/dashboard")
 			return
 		}
 	}
-
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	ac.renderer.Render(c.Writer, "login", gin.H{
 		"Error": c.Query("error"),
@@ -52,7 +50,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	sessionID, err := ac.sessions.Create(admin.ID, admin.Username)
+	sessionID, err := ac.sessions.Create(admin.ID, admin.Username, "", "", services.SessionAdmin)
 	if err != nil {
 		c.Redirect(http.StatusFound, "/admin/login?error=server")
 		return

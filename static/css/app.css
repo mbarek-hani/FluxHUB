@@ -1,6 +1,5 @@
 /* ============================================
-   FLUX MARKETPLACE — ADMIN UI
-   No frameworks. Clean CSS.
+   FLUXHUB — ADMIN UI
    ============================================ */
 
 :root {
@@ -54,6 +53,7 @@ a {
     color: var(--accent-blue);
     text-decoration: none;
 }
+
 a:hover {
     text-decoration: underline;
 }
@@ -181,6 +181,7 @@ a:hover {
     cursor: pointer;
     font-size: 12px;
 }
+
 .btn-logout:hover {
     border-color: var(--accent-red);
     color: var(--accent-red);
@@ -254,12 +255,15 @@ a:hover {
 .stat-card .value.blue {
     color: var(--accent-blue);
 }
+
 .stat-card .value.green {
     color: var(--accent-green);
 }
+
 .stat-card .value.orange {
     color: var(--accent-orange);
 }
+
 .stat-card .value.red {
     color: var(--accent-red);
 }
@@ -382,6 +386,7 @@ tbody tr:last-child td {
     border-color: rgba(63, 185, 80, 0.4);
     color: #fff;
 }
+
 .btn-primary:hover {
     background: #2ea043;
 }
@@ -391,6 +396,7 @@ tbody tr:last-child td {
     border-color: rgba(248, 81, 73, 0.4);
     color: #fff;
 }
+
 .btn-danger:hover {
     background: #f85149;
 }
@@ -400,6 +406,7 @@ tbody tr:last-child td {
     border: 1px solid var(--border-primary);
     color: var(--text-secondary);
 }
+
 .btn-outline:hover {
     border-color: var(--text-muted);
     color: var(--text-primary);
@@ -544,24 +551,31 @@ tbody tr:last-child td {
 .icon-php {
     color: #8892be;
 }
+
 .icon-json {
     color: #d29922;
 }
+
 .icon-md {
     color: #58a6ff;
 }
+
 .icon-blade {
     color: #f85149;
 }
+
 .icon-js {
     color: #d29922;
 }
+
 .icon-css {
     color: #58a6ff;
 }
+
 .icon-folder {
     color: #8b949e;
 }
+
 .icon-folder-open {
     color: #58a6ff;
 }
@@ -594,7 +608,6 @@ tbody tr:last-child td {
 
 .code-content pre {
     margin: 0;
-    padding: 0;
     background: transparent;
 }
 
@@ -621,6 +634,10 @@ tbody tr:last-child td {
 }
 
 .line-numbers {
+    position: sticky;
+    left: 0;
+    background: var(--bg-secondary);
+    z-index: 1;
     display: inline-block;
     text-align: right;
     padding: 16px 12px 16px 16px;
@@ -632,6 +649,7 @@ tbody tr:last-child td {
     vertical-align: top;
     border-right: 1px solid var(--border-primary);
     min-width: 50px;
+    white-space: pre;
 }
 
 .code-lines {
@@ -809,9 +827,11 @@ tbody tr:last-child td {
 .diff-stats-bar .add {
     background: var(--accent-green);
 }
+
 .diff-stats-bar .del {
     background: var(--accent-red);
 }
+
 .diff-stats-bar .neutral {
     background: var(--text-muted);
 }
@@ -1076,6 +1096,7 @@ textarea.form-input {
         transform: translateX(100%);
         opacity: 0;
     }
+
     to {
         transform: translateX(0);
         opacity: 1;

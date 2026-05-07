@@ -1,0 +1,342 @@
+/* ============================================
+   FLUXHUB — Developer Portal Styles
+   ============================================ */
+
+/* Portal accent color override */
+.dev-portal {
+    --accent-dev: #bc8cff;
+}
+
+.dev-sidebar .sidebar-logo svg {
+    color: var(--accent-dev);
+}
+
+.dev-avatar {
+    background: var(--accent-purple) !important;
+}
+
+/* ---- AUTH PAGES ---- */
+.auth-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--bg-canvas);
+    padding: 24px;
+}
+
+.auth-box {
+    width: 400px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    padding: 36px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.auth-box-wide {
+    width: 600px;
+}
+
+.auth-logo {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.auth-logo svg {
+    width: 48px;
+    height: 48px;
+    color: var(--accent-purple);
+}
+
+.auth-box h1 {
+    text-align: center;
+    font-size: 22px;
+    margin-bottom: 6px;
+}
+
+.auth-subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.btn-full {
+    width: 100%;
+    justify-content: center;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.required {
+    color: var(--accent-red);
+    font-size: 12px;
+}
+
+.field-hint {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-top: 2px;
+}
+
+/* ---- ALERTS ---- */
+.alert {
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+}
+
+.alert-error {
+    background: rgba(248, 81, 73, 0.1);
+    border: 1px solid rgba(248, 81, 73, 0.3);
+    color: var(--accent-red);
+}
+
+.alert-success {
+    background: rgba(63, 185, 80, 0.1);
+    border: 1px solid rgba(63, 185, 80, 0.3);
+    color: var(--accent-green);
+}
+
+/* ---- SIDEBAR DIVIDER ---- */
+.sidebar-divider {
+    height: 1px;
+    background: var(--border-primary);
+    margin: 8px 12px;
+}
+
+/* ---- PLUGIN CARDS ---- */
+.plugin-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+}
+
+.plugin-card:hover {
+    border-color: var(--text-muted);
+}
+
+.plugin-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.plugin-card-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.plugin-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-purple);
+    flex-shrink: 0;
+}
+
+.plugin-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.plugin-name {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.plugin-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.plugin-card-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* ---- STATUS MESSAGES ---- */
+.status-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border-radius: var(--radius);
+    font-size: 13px;
+}
+
+.status-pending {
+    background: rgba(210, 153, 34, 0.08);
+    border: 1px solid rgba(210, 153, 34, 0.2);
+    color: var(--accent-orange);
+}
+
+.status-approved {
+    background: rgba(63, 185, 80, 0.08);
+    border: 1px solid rgba(63, 185, 80, 0.2);
+    color: var(--accent-green);
+}
+
+.status-rejected {
+    background: rgba(248, 81, 73, 0.08);
+    border: 1px solid rgba(248, 81, 73, 0.2);
+    color: var(--accent-red);
+}
+
+/* ---- STATUS BANNERS (detail page) ---- */
+.status-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 20px;
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+}
+
+.status-banner strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.status-banner p {
+    font-size: 13px;
+    margin: 0;
+}
+
+.status-banner-pending {
+    background: rgba(210, 153, 34, 0.08);
+    border: 1px solid rgba(210, 153, 34, 0.25);
+    color: var(--accent-orange);
+}
+
+.status-banner-approved {
+    background: rgba(63, 185, 80, 0.08);
+    border: 1px solid rgba(63, 185, 80, 0.25);
+    color: var(--accent-green);
+}
+
+.status-banner-rejected {
+    background: rgba(248, 81, 73, 0.08);
+    border: 1px solid rgba(248, 81, 73, 0.25);
+    color: var(--accent-red);
+}
+
+/* ---- EMPTY STATE ---- */
+.dev-empty-state {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--text-muted);
+}
+
+.dev-empty-state svg {
+    width: 64px;
+    height: 64px;
+    opacity: 0.2;
+    margin-bottom: 16px;
+}
+
+.dev-empty-state h2 {
+    font-size: 20px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+/* ---- GUIDELINES ---- */
+.guidelines-list {
+    list-style: none;
+    padding: 0;
+}
+
+.guidelines-list li {
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-secondary);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.guidelines-list li::before {
+    content: "→";
+    color: var(--accent-purple);
+    flex-shrink: 0;
+    margin-top: 0;
+}
+
+.guidelines-list li:last-child {
+    border-bottom: none;
+}
+
+/* ---- PROCESS STEPS ---- */
+.process-step {
+    display: flex;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-secondary);
+}
+
+.process-step:last-child {
+    border-bottom: none;
+}
+
+.step-number {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent-purple);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.process-step strong {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 2px;
+}
+
+.process-step p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* [x-cloak] prevents Alpine flicker */
+[x-cloak] {
+    display: none !important;
+}

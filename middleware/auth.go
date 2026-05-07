@@ -40,15 +40,41 @@ func SessionAuth(sessions *services.SessionStore) gin.HandlerFunc {
 		}
 
 		session, ok := sessions.Get(cookie)
-		if !ok {
+		if !ok || session.Kind != services.SessionAdmin {
 			c.SetCookie("flux_session", "", -1, "/", "", false, true)
 			c.Redirect(http.StatusFound, "/admin/login")
 			c.Abort()
 			return
 		}
 
-		c.Set("admin_id", session.AdminID)
+		c.Set("admin_id", session.UserID)
 		c.Set("admin_username", session.Username)
+		c.Next()
+	}
+}
+
+// DeveloperAuth protects developer portal routes
+func DeveloperAuth(sessions *services.SessionStore) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		cookie, err := c.Cookie("dev_session")
+		if err != nil {
+			c.Redirect(http.StatusFound, "/dev/login")
+			c.Abort()
+			return
+		}
+
+		session, ok := sessions.Get(cookie)
+		if !ok || session.Kind != services.SessionDeveloper {
+			c.SetCookie("dev_session", "", -1, "/", "", false, true)
+			c.Redirect(http.StatusFound, "/dev/login")
+			c.Abort()
+			return
+		}
+
+		c.Set("dev_id", session.UserID)
+		c.Set("dev_username", session.Username)
+		c.Set("dev_email", session.Email)
+		c.Set("dev_fullname", session.FullName)
 		c.Next()
 	}
 }

@@ -1,0 +1,104 @@
+{{define "dev-content"}}
+<div class="top-bar">
+    <h1>Profile Settings</h1>
+</div>
+
+<div class="content">
+    {{if .Success}}
+    <div class="alert alert-success" style="margin-bottom:20px">
+        Profile updated successfully.
+    </div>
+    {{end}}
+
+    {{if .Error}}
+    <div class="alert alert-error" style="margin-bottom:20px">
+        {{if eq .Error "wrong_password"}}Current password is incorrect.
+        {{else if eq .Error "password_short"}}New password must be at least 8 characters.
+        {{else if eq .Error "password_mismatch"}}New passwords do not match.
+        {{else if eq .Error "server"}}Server error. Please try again.
+        {{else}}An error occurred.{{end}}
+    </div>
+    {{end}}
+
+    <form method="POST" action="/dev/profile">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+            <!-- Profile Info -->
+            <div class="panel">
+                <div class="panel-header">Personal Information</div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" class="form-input" value="{{.Dev.Username}}" disabled
+                            style="opacity:0.6;cursor:not-allowed">
+                        <small style="color:var(--text-muted)">Username cannot be changed.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="text" class="form-input" value="{{.Dev.Email}}" disabled
+                            style="opacity:0.6;cursor:not-allowed">
+                    </div>
+                    <div class="form-group">
+                        <label for="full_name">Full Name</label>
+                        <input type="text" id="full_name" name="full_name" class="form-input" value="{{.Dev.FullName}}">
+                    </div>
+                    <div class="form-group">
+                        <label for="company">Company / Organization</label>
+                        <input type="text" id="company" name="company" class="form-input" value="{{.Dev.Company}}">
+                    </div>
+                    <div class="form-group">
+                        <label for="website">Website</label>
+                        <input type="url" id="website" name="website" class="form-input" value="{{.Dev.Website}}">
+                    </div>
+                    <div class="form-group">
+                        <label for="bio">Bio</label>
+                        <textarea id="bio" name="bio" class="form-input" rows="3"
+                            placeholder="Tell us about yourself...">{{.Dev.Bio}}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Change -->
+            <div>
+                <div class="panel">
+                    <div class="panel-header">Change Password</div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label for="current_password">Current Password</label>
+                            <input type="password" id="current_password" name="current_password" class="form-input"
+                                placeholder="Leave blank to keep current">
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password">New Password</label>
+                            <input type="password" id="new_password" name="new_password" class="form-input"
+                                placeholder="Min. 8 characters">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">Confirm New Password</label>
+                            <input type="password" id="confirm_password" name="confirm_password" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Info -->
+                <div class="panel" style="margin-top:16px">
+                    <div class="panel-header">Account Info</div>
+                    <div class="panel-body">
+                        <div class="info-row">
+                            <div class="info-label">Member since</div>
+                            <div class="info-value">{{fmtDateShort .Dev.CreatedAt}}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Developer ID</div>
+                            <div class="info-value"><code style="font-size:11px">{{.Dev.ID}}</code></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:20px">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </form>
+</div>
+{{end}}

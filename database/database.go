@@ -37,15 +37,20 @@ func Connect() {
 	}
 
 	DB, err = gorm.Open(dialector, &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Warn),
 	})
 	if err != nil {
 		log.Fatalf("DB connection failed: %v", err)
 	}
 
-	log.Printf("DB connected (%s)", dbDriver)
+	log.Printf("✅ DB connected (%s)", dbDriver)
 
-	DB.AutoMigrate(&models.Plugin{}, &models.Version{}, &models.Admin{})
+	DB.AutoMigrate(
+		&models.Developer{},
+		&models.Plugin{},
+		&models.Version{},
+		&models.Admin{},
+	)
 
 	seedAdmin()
 }
@@ -54,13 +59,10 @@ func seedAdmin() {
 	var count int64
 	DB.Model(&models.Admin{}).Count(&count)
 	if count == 0 {
-		admin := models.Admin{
-			Username: getEnv("ADMIN_USERNAME", "admin"),
-		}
-		password := getEnv("ADMIN_PASSWORD", "flux2024!")
-		admin.SetPassword(password)
+		admin := models.Admin{Username: getEnv("ADMIN_USERNAME", "admin")}
+		admin.SetPassword(getEnv("ADMIN_PASSWORD", "flux2024!"))
 		DB.Create(&admin)
-		log.Printf("Default admin created: %s / %s", admin.Username, password)
+		log.Printf("🔑 Default admin created: %s", admin.Username)
 	}
 }
 

@@ -7,9 +7,20 @@ import (
 	"time"
 )
 
+type SessionKind string
+
+const (
+	SessionAdmin     SessionKind = "admin"
+	SessionDeveloper SessionKind = "developer"
+)
+
 type Session struct {
-	AdminID   string
+	ID        string
+	UserID    string
 	Username  string
+	Email     string
+	FullName  string
+	Kind      SessionKind
 	CreatedAt time.Time
 	ExpiresAt time.Time
 }
@@ -25,12 +36,11 @@ func NewSessionStore(ttl time.Duration) *SessionStore {
 		sessions: make(map[string]*Session),
 		ttl:      ttl,
 	}
-	// Goroutine de nettoyage
 	go store.cleanup()
 	return store
 }
 
-func (s *SessionStore) Create(adminID, username string) (string, error) {
+func (s *SessionStore) Create(userID, username, email, fullName string, kind SessionKind) (string, error) {
 	token := make([]byte, 32)
 	if _, err := rand.Read(token); err != nil {
 		return "", err
@@ -41,8 +51,12 @@ func (s *SessionStore) Create(adminID, username string) (string, error) {
 	defer s.mu.Unlock()
 
 	s.sessions[sessionID] = &Session{
-		AdminID:   adminID,
+		ID:        sessionID,
+		UserID:    userID,
 		Username:  username,
+		Email:     email,
+		FullName:  fullName,
+		Kind:      kind,
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(s.ttl),
 	}

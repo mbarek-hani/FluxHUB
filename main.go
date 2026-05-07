@@ -48,8 +48,9 @@ func NewTemplateRegistry() *TemplateRegistry {
 		"upper": strings.ToUpper,
 		"lower": strings.ToLower,
 		"avatarLetter": func(s string) string {
-			if len(s) > 0 {
-				return strings.ToUpper(string(s[0]))
+			r := []rune(s)
+			if len(r) > 0 {
+				return strings.ToUpper(string(r[0]))
 			}
 			return "?"
 		},
@@ -57,7 +58,6 @@ func NewTemplateRegistry() *TemplateRegistry {
 			b, _ := json.Marshal(tags)
 			return template.JS(b)
 		},
-		// ← Add these date formatters
 		"fmtDate": func(t time.Time) string {
 			return t.Format("Jan 02, 15:04")
 		},
@@ -67,9 +67,6 @@ func NewTemplateRegistry() *TemplateRegistry {
 		"fmtDateShort": func(t time.Time) string {
 			return t.Format("2006-01-02")
 		},
-		"toString": func(v interface{}) string {
-			return fmt.Sprintf("%v", v)
-		},
 	}
 
 	reg := &TemplateRegistry{
@@ -77,25 +74,46 @@ func NewTemplateRegistry() *TemplateRegistry {
 		funcMap:   funcMap,
 	}
 
-	// Login — standalone, no layout
-	reg.templates["login"] = template.Must(
-		template.New("login.html").Funcs(funcMap).ParseFiles("templates/login.html"),
-	)
+	// ---- Standalone pages (no layout) ----
+	standalones := map[string]string{
+		"login":        "templates/login.html",
+		"dev_login":    "templates/dev_login.html",
+		"dev_register": "templates/dev_register.html",
+	}
+	for name, file := range standalones {
+		reg.templates[name] = template.Must(
+			template.New(name).Funcs(funcMap).ParseFiles(file),
+		)
+	}
 
-	// Each page gets its OWN template set: layout + that one page
-	// This way each page can define "page-content" without conflict
-	pages := []string{
+	// ---- Admin layout pages ----
+	adminPages := []string{
 		"dashboard",
 		"plugins_list",
 		"plugin_review",
 		"plugin_browse",
 		"plugin_diff",
 	}
-
-	for _, page := range pages {
+	for _, page := range adminPages {
 		reg.templates[page] = template.Must(
 			template.New(page).Funcs(funcMap).ParseFiles(
 				"templates/layout.html",
+				fmt.Sprintf("templates/%s.html", page),
+			),
+		)
+	}
+
+	// ---- Developer layout pages ----
+	devPages := []string{
+		"dev_dashboard",
+		"dev_submit",
+		"dev_plugin_detail",
+		"dev_profile",
+	}
+	for _, page := range devPages {
+		reg.templates[page] = template.Must(
+			template.New(page).Funcs(funcMap).ParseFiles(
+				"templates/dev_layout.html",
 				fmt.Sprintf("templates/%s.html", page),
 			),
 		)
@@ -110,11 +128,26 @@ func (tr *TemplateRegistry) Render(w interface{ Write([]byte) (int, error) }, na
 		return fmt.Errorf("template %s not found", name)
 	}
 
-	if name == "login" {
-		return tmpl.ExecuteTemplate(w, "login", data)
+	// Standalone pages
+	standalones := map[string]string{
+		"login":        "login",
+		"dev_login":    "dev_login",
+		"dev_register": "dev_register",
+	}
+	if block, ok := standalones[name]; ok {
+		return tmpl.ExecuteTemplate(w, block, data)
 	}
 
-	// All layout pages: execute the "layout" block which calls "page-content"
+	// Developer portal pages use dev_layout
+	devPages := map[string]bool{
+		"dev_dashboard": true, "dev_submit": true,
+		"dev_plugin_detail": true, "dev_profile": true,
+	}
+	if devPages[name] {
+		return tmpl.ExecuteTemplate(w, "dev_layout", data)
+	}
+
+	// Admin pages use layout
 	return tmpl.ExecuteTemplate(w, "layout", data)
 }
 
@@ -152,6 +185,7 @@ func main() {
 	downloadCtrl := controllers.NewDownloadController(packager, signer)
 	authCtrl := controllers.NewAuthController(sessionStore, renderer)
 	adminUICtrl := controllers.NewAdminUIController(gitManager, signer, packager, scanner, renderer)
+	devCtrl := controllers.NewDeveloperController(sessionStore, renderer, gitManager, scanner)
 
 	router := gin.New()
 	router.Use(gin.Logger())
@@ -225,9 +259,33 @@ func main() {
 		}
 	}
 
+	// Developer Portal
+	dev := router.Group("/dev")
+	{
+		dev.GET("/login", devCtrl.ShowLogin)
+		dev.POST("/login", devCtrl.Login)
+		dev.GET("/register", devCtrl.ShowRegister)
+		dev.POST("/register", devCtrl.Register)
+		dev.POST("/logout", devCtrl.Logout)
+
+		protected := dev.Group("")
+		protected.Use(middleware.DeveloperAuth(sessionStore))
+		{
+			protected.GET("/dashboard", devCtrl.Dashboard)
+			protected.GET("/submit", devCtrl.ShowSubmit)
+			protected.POST("/submit", devCtrl.Submit)
+			protected.GET("/plugins/:id", devCtrl.PluginDetail)
+			protected.GET("/profile", devCtrl.ShowProfile)
+			protected.POST("/profile", devCtrl.UpdateProfile)
+
+			// AJAX
+			protected.GET("/api/plugins/:id/status", devCtrl.APIGetPluginStatus)
+		}
+	}
+
 	// Root redirect
 	router.GET("/", func(c *gin.Context) {
-		c.Redirect(302, "/admin/login")
+		c.Redirect(302, "/dev/login")
 	})
 
 	// Health
