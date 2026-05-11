@@ -1,10 +1,10 @@
 package services
 
 import (
-	"crypto/rand"
-	"encoding/hex"
-	"sync"
+	"errors"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type SessionKind string
@@ -13,6 +13,8 @@ const (
 	SessionAdmin     SessionKind = "admin"
 	SessionDeveloper SessionKind = "developer"
 )
+
+var jwtSecret = []byte("super-secret-flux-key-change-me-in-production")
 
 type Session struct {
 	ID        string
@@ -26,75 +28,79 @@ type Session struct {
 }
 
 type SessionStore struct {
-	mu       sync.RWMutex
-	sessions map[string]*Session
-	ttl      time.Duration
+	ttl time.Duration
+}
+
+type sessionClaims struct {
+	UserID   string      `json:"uid"`
+	Username string      `json:"uname"`
+	Email    string      `json:"eml,omitempty"`
+	FullName string      `json:"fname,omitempty"`
+	Kind     SessionKind `json:"kind"`
+	jwt.RegisteredClaims
 }
 
 func NewSessionStore(ttl time.Duration) *SessionStore {
-	store := &SessionStore{
-		sessions: make(map[string]*Session),
-		ttl:      ttl,
+	return &SessionStore{
+		ttl: ttl,
 	}
-	go store.cleanup()
-	return store
 }
 
 func (s *SessionStore) Create(userID, username, email, fullName string, kind SessionKind) (string, error) {
-	token := make([]byte, 32)
-	if _, err := rand.Read(token); err != nil {
-		return "", err
-	}
-	sessionID := hex.EncodeToString(token)
+	now := time.Now()
+	expiresAt := now.Add(s.ttl)
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.sessions[sessionID] = &Session{
-		ID:        sessionID,
-		UserID:    userID,
-		Username:  username,
-		Email:     email,
-		FullName:  fullName,
-		Kind:      kind,
-		CreatedAt: time.Now(),
-		ExpiresAt: time.Now().Add(s.ttl),
+	claims := sessionClaims{
+		UserID:   userID,
+		Username: username,
+		Email:    email,
+		FullName: fullName,
+		Kind:     kind,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			IssuedAt:  jwt.NewNumericDate(now),
+			ID:        userID,
+		},
 	}
 
-	return sessionID, nil
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtSecret)
 }
 
-func (s *SessionStore) Get(sessionID string) (*Session, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func (s *SessionStore) Get(tokenString string) (*Session, bool) {
+	if tokenString == "" {
+		return nil, false
+	}
 
-	sess, ok := s.sessions[sessionID]
+	token, err := jwt.ParseWithClaims(tokenString, &sessionClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return nil, false
+	}
+
+	claims, ok := token.Claims.(*sessionClaims)
 	if !ok {
 		return nil, false
 	}
-	if time.Now().After(sess.ExpiresAt) {
-		delete(s.sessions, sessionID)
-		return nil, false
-	}
-	return sess, true
+
+	return &Session{
+		ID:        tokenString, // Just use the token as the ID
+		UserID:    claims.UserID,
+		Username:  claims.Username,
+		Email:     claims.Email,
+		FullName:  claims.FullName,
+		Kind:      claims.Kind,
+		CreatedAt: claims.IssuedAt.Time,
+		ExpiresAt: claims.ExpiresAt.Time,
+	}, true
 }
 
 func (s *SessionStore) Destroy(sessionID string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	delete(s.sessions, sessionID)
-}
-
-func (s *SessionStore) cleanup() {
-	ticker := time.NewTicker(5 * time.Minute)
-	for range ticker.C {
-		s.mu.Lock()
-		now := time.Now()
-		for id, sess := range s.sessions {
-			if now.After(sess.ExpiresAt) {
-				delete(s.sessions, id)
-			}
-		}
-		s.mu.Unlock()
-	}
+	// Stateless JWT, no server-side destroy needed.
+	// The client removes the cookie.
 }

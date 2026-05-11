@@ -56,7 +56,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("flux_session", sessionID, 86400, "/", "", false, true)
+	c.SetCookie("flux_session", sessionID, 86400*30, "/", "", false, true)
 	c.Redirect(http.StatusFound, "/admin/dashboard")
 }
 

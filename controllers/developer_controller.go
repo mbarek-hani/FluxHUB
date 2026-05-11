@@ -140,7 +140,7 @@ func (dc *DeveloperController) Register(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("dev_session", sessionID, 86400*7, "/", "", false, true)
+	c.SetCookie("dev_session", sessionID, 86400*30, "/", "", false, true)
 	c.Redirect(http.StatusFound, "/dev/dashboard")
 }
 
@@ -183,7 +183,7 @@ func (dc *DeveloperController) Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("dev_session", sessionID, 86400*7, "/", "", false, true)
+	c.SetCookie("dev_session", sessionID, 86400*30, "/", "", false, true)
 	c.Redirect(http.StatusFound, "/dev/dashboard")
 }
 

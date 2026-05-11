@@ -176,7 +176,7 @@ func main() {
 		log.Fatalf("Signer error: %v", err)
 	}
 	packager := services.NewPackager(cfg.ZipsPath)
-	sessionStore := services.NewSessionStore(24 * time.Hour)
+	sessionStore := services.NewSessionStore(30 * 24 * time.Hour)
 
 	renderer := NewTemplateRegistry()
 
