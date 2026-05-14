@@ -8,6 +8,7 @@ import (
 	"github.com/mbarek-hani/FluxHUB/models"
 	"github.com/mbarek-hani/FluxHUB/services"
 	"github.com/mbarek-hani/FluxHUB/utils"
+	"github.com/mbarek-hani/FluxHUB/views/pages"
 )
 
 type Renderer interface {
@@ -37,9 +38,7 @@ func (ac *AuthController) ShowLogin(c *gin.Context) {
 		}
 	}
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	ac.renderer.Render(c.Writer, "login", gin.H{
-		"Error": c.Query("error"),
-	})
+	pages.Login(c.Query("error")).Render(c.Request.Context(), c.Writer)
 }
 
 func (ac *AuthController) Login(c *gin.Context) {

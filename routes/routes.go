@@ -28,6 +28,7 @@ func SetupRoutes(router *gin.Engine, cfg RouterConfig) {
 	})
 
 	router.Static("/static", "./static")
+	router.StaticFile("/static/js/alpine.js", "./node_modules/alpinejs/dist/cdn.min.js")
 
 	// ---- Public API v1 ----
 	v1 := router.Group("/v1")

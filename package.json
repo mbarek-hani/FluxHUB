@@ -19,5 +19,8 @@
   "homepage": "https://github.com/mbarek-hani/FluxHUB#readme",
   "devDependencies": {
     "tailwindcss": "^4.3.0"
+  },
+  "dependencies": {
+    "alpinejs": "^3.15.12"
   }
 }
