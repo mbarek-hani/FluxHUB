@@ -1,0 +1,23 @@
+{
+  "name": "fluxhub",
+  "version": "1.0.0",
+  "description": "FluxHUB is a modern web application built using Go, Templ, Tailwind CSS, and GORM.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mbarek-hani/FluxHUB.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mbarek-hani/FluxHUB/issues"
+  },
+  "homepage": "https://github.com/mbarek-hani/FluxHUB#readme",
+  "devDependencies": {
+    "tailwindcss": "^4.3.0"
+  }
+}
