@@ -7,6 +7,7 @@ import (
 	"github.com/mbarek-hani/FluxHUB/database"
 	"github.com/mbarek-hani/FluxHUB/models"
 	"github.com/mbarek-hani/FluxHUB/services"
+	"github.com/mbarek-hani/FluxHUB/utils"
 )
 
 type Renderer interface {
@@ -24,9 +25,15 @@ func NewAuthController(sessions *services.SessionStore, renderer Renderer) *Auth
 
 func (ac *AuthController) ShowLogin(c *gin.Context) {
 	if cookie, err := c.Cookie("flux_session"); err == nil {
-		if sess, ok := ac.sessions.Get(cookie); ok && sess.Kind == services.SessionAdmin {
-			c.Redirect(http.StatusFound, "/admin/dashboard")
-			return
+		if decryptedCookie, err := utils.Decrypt(cookie); err == nil {
+			if user, ok := ac.sessions.Get(decryptedCookie); ok {
+				if user.Role == models.RoleAdmin {
+					c.Redirect(http.StatusFound, "/admin/dashboard")
+				} else {
+					c.Redirect(http.StatusFound, "/dev/dashboard")
+				}
+				return
+			}
 		}
 	}
 	c.Header("Content-Type", "text/html; charset=utf-8")
@@ -36,34 +43,51 @@ func (ac *AuthController) ShowLogin(c *gin.Context) {
 }
 
 func (ac *AuthController) Login(c *gin.Context) {
-	username := c.PostForm("username")
+	login := c.PostForm("login") // username or email
+	if login == "" {
+		login = c.PostForm("username") // fallback for old form
+	}
 	password := c.PostForm("password")
 
-	var admin models.Admin
-	if err := database.DB.Where("username = ?", username).First(&admin).Error; err != nil {
-		c.Redirect(http.StatusFound, "/admin/login?error=invalid")
+	var user models.User
+	if err := database.DB.Where("username = ? OR email = ?", login, login).First(&user).Error; err != nil {
+		c.Redirect(http.StatusFound, "/login?error=invalid")
 		return
 	}
 
-	if !admin.CheckPassword(password) {
-		c.Redirect(http.StatusFound, "/admin/login?error=invalid")
+	if !user.CheckPassword(password) {
+		c.Redirect(http.StatusFound, "/login?error=invalid")
 		return
 	}
 
-	sessionID, err := ac.sessions.Create(admin.ID, admin.Username, "", "", services.SessionAdmin)
+	sessionID, err := ac.sessions.Create(user.ID)
 	if err != nil {
-		c.Redirect(http.StatusFound, "/admin/login?error=server")
+		c.Redirect(http.StatusFound, "/login?error=server")
 		return
 	}
 
-	c.SetCookie("flux_session", sessionID, 86400*30, "/", "", false, true)
-	c.Redirect(http.StatusFound, "/admin/dashboard")
+	encryptedSession, err := utils.Encrypt(sessionID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/login?error=server")
+		return
+	}
+
+	// 1-day expiration (86400 seconds)
+	c.SetCookie("flux_session", encryptedSession, 86400, "/", "", false, true)
+
+	if user.Role == models.RoleAdmin {
+		c.Redirect(http.StatusFound, "/admin/dashboard")
+	} else {
+		c.Redirect(http.StatusFound, "/dev/dashboard")
+	}
 }
 
 func (ac *AuthController) Logout(c *gin.Context) {
 	if cookie, err := c.Cookie("flux_session"); err == nil {
-		ac.sessions.Destroy(cookie)
+		if decryptedCookie, err := utils.Decrypt(cookie); err == nil {
+			ac.sessions.Destroy(decryptedCookie)
+		}
 	}
 	c.SetCookie("flux_session", "", -1, "/", "", false, true)
-	c.Redirect(http.StatusFound, "/admin/login")
+	c.Redirect(http.StatusFound, "/login")
 }

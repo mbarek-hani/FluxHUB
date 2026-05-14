@@ -39,14 +39,14 @@ func NewDeveloperController(
 // ---- Auth helpers ----
 
 func (dc *DeveloperController) getDevID(c *gin.Context) string {
-	if v, ok := c.Get("dev_id"); ok {
+	if v, ok := c.Get("user_id"); ok {
 		return fmt.Sprintf("%v", v)
 	}
 	return ""
 }
 
 func (dc *DeveloperController) getDevUsername(c *gin.Context) string {
-	if v, ok := c.Get("dev_username"); ok {
+	if v, ok := c.Get("user_username"); ok {
 		return fmt.Sprintf("%v", v)
 	}
 	return ""
@@ -63,8 +63,8 @@ func (dc *DeveloperController) getDevFullName(c *gin.Context) string {
 
 func (dc *DeveloperController) ShowRegister(c *gin.Context) {
 	// Already logged in?
-	if cookie, err := c.Cookie("dev_session"); err == nil {
-		if sess, ok := dc.sessions.Get(cookie); ok && sess.Kind == services.SessionDeveloper {
+	if cookie, err := c.Cookie("flux_session"); err == nil {
+		if sess, ok := dc.sessions.Get(cookie); ok && sess.Role == models.RoleDeveloper {
 			c.Redirect(http.StatusFound, "/dev/dashboard")
 			return
 		}
@@ -102,7 +102,7 @@ func (dc *DeveloperController) Register(c *gin.Context) {
 
 	// Check uniqueness
 	var existingCount int64
-	database.DB.Model(&models.Developer{}).
+	database.DB.Model(&models.User{}).
 		Where("username = ? OR email = ?", username, email).
 		Count(&existingCount)
 
@@ -111,7 +111,7 @@ func (dc *DeveloperController) Register(c *gin.Context) {
 		return
 	}
 
-	dev := models.Developer{
+	dev := models.User{
 		Username: username,
 		Email:    email,
 		FullName: fullName,
@@ -132,75 +132,24 @@ func (dc *DeveloperController) Register(c *gin.Context) {
 
 	// Auto-login after registration
 	sessionID, err := dc.sessions.Create(
-		dev.ID, dev.Username, dev.Email, dev.FullName,
-		services.SessionDeveloper,
-	)
+		dev.ID)
 	if err != nil {
-		c.Redirect(http.StatusFound, "/dev/login")
+		c.Redirect(http.StatusFound, "/login")
 		return
 	}
 
-	c.SetCookie("dev_session", sessionID, 86400*30, "/", "", false, true)
+	c.SetCookie("flux_session", sessionID, 86400*30, "/", "", false, true)
 	c.Redirect(http.StatusFound, "/dev/dashboard")
 }
 
-func (dc *DeveloperController) ShowLogin(c *gin.Context) {
-	if cookie, err := c.Cookie("dev_session"); err == nil {
-		if sess, ok := dc.sessions.Get(cookie); ok && sess.Kind == services.SessionDeveloper {
-			c.Redirect(http.StatusFound, "/dev/dashboard")
-			return
-		}
-	}
-	c.Header("Content-Type", "text/html; charset=utf-8")
-	dc.renderer.Render(c.Writer, "dev_login", gin.H{
-		"Error": c.Query("error"),
-	})
-}
 
-func (dc *DeveloperController) Login(c *gin.Context) {
-	login := c.PostForm("login") // username or email
-	password := c.PostForm("password")
-
-	var dev models.Developer
-	if err := database.DB.
-		Where("username = ? OR email = ?", login, login).
-		First(&dev).Error; err != nil {
-		c.Redirect(http.StatusFound, "/dev/login?error=invalid")
-		return
-	}
-
-	if !dev.CheckPassword(password) {
-		c.Redirect(http.StatusFound, "/dev/login?error=invalid")
-		return
-	}
-
-	sessionID, err := dc.sessions.Create(
-		dev.ID, dev.Username, dev.Email, dev.FullName,
-		services.SessionDeveloper,
-	)
-	if err != nil {
-		c.Redirect(http.StatusFound, "/dev/login?error=server")
-		return
-	}
-
-	c.SetCookie("dev_session", sessionID, 86400*30, "/", "", false, true)
-	c.Redirect(http.StatusFound, "/dev/dashboard")
-}
-
-func (dc *DeveloperController) Logout(c *gin.Context) {
-	if cookie, err := c.Cookie("dev_session"); err == nil {
-		dc.sessions.Destroy(cookie)
-	}
-	c.SetCookie("dev_session", "", -1, "/", "", false, true)
-	c.Redirect(http.StatusFound, "/dev/login")
-}
 
 func (dc *DeveloperController) Dashboard(c *gin.Context) {
 	devID := dc.getDevID(c)
 
-	var dev models.Developer
+	var dev models.User
 	if err := database.DB.First(&dev, "id = ?", devID).Error; err != nil {
-		c.Redirect(http.StatusFound, "/dev/login")
+		c.Redirect(http.StatusFound, "/login")
 		return
 	}
 
@@ -399,9 +348,9 @@ func (dc *DeveloperController) PluginDetail(c *gin.Context) {
 func (dc *DeveloperController) ShowProfile(c *gin.Context) {
 	devID := dc.getDevID(c)
 
-	var dev models.Developer
+	var dev models.User
 	if err := database.DB.First(&dev, "id = ?", devID).Error; err != nil {
-		c.Redirect(http.StatusFound, "/dev/login")
+		c.Redirect(http.StatusFound, "/login")
 		return
 	}
 
@@ -420,9 +369,9 @@ func (dc *DeveloperController) ShowProfile(c *gin.Context) {
 func (dc *DeveloperController) UpdateProfile(c *gin.Context) {
 	devID := dc.getDevID(c)
 
-	var dev models.Developer
+	var dev models.User
 	if err := database.DB.First(&dev, "id = ?", devID).Error; err != nil {
-		c.Redirect(http.StatusFound, "/dev/login")
+		c.Redirect(http.StatusFound, "/login")
 		return
 	}
 

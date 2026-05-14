@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/mbarek-hani/FluxHUB/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -27,12 +26,12 @@ func Connect() {
 			getEnv("DB_HOST", "localhost"),
 			getEnv("DB_USER", "postgres"),
 			getEnv("DB_PASSWORD", ""),
-			getEnv("DB_NAME", "flux_marketplace"),
+			getEnv("DB_NAME", "flux_hub"),
 			getEnv("DB_PORT", "5432"),
 		)
 		dialector = postgres.Open(dsn)
 	default:
-		dbPath := getEnv("SQLITE_PATH", "./flux_marketplace.db")
+		dbPath := getEnv("SQLITE_PATH", "./fluxHUB.db")
 		dialector = sqlite.Open(dbPath)
 	}
 
@@ -45,19 +44,6 @@ func Connect() {
 	}
 
 	slog.Info("DB connected", "driver", dbDriver)
-
-	seedAdmin()
-}
-
-func seedAdmin() {
-	var count int64
-	DB.Model(&models.Admin{}).Count(&count)
-	if count == 0 {
-		admin := models.Admin{Username: getEnv("ADMIN_USERNAME", "admin")}
-		admin.SetPassword(getEnv("ADMIN_PASSWORD", "flux2024!"))
-		DB.Create(&admin)
-		slog.Info("Default admin created", "username", admin.Username)
-	}
 }
 
 func getEnv(key, defaultValue string) string {

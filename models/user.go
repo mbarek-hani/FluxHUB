@@ -8,10 +8,18 @@ import (
 	"gorm.io/gorm"
 )
 
-type Developer struct {
+type Role string
+
+const (
+	RoleAdmin     Role = "admin"
+	RoleDeveloper Role = "developer"
+)
+
+type User struct {
 	ID        string    `gorm:"type:varchar(36);primaryKey" json:"id"`
+	Role      Role      `gorm:"type:varchar(20);not null;default:'developer'" json:"role"`
 	Username  string    `gorm:"type:varchar(100);uniqueIndex;not null" json:"username"`
-	Email     string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
+	Email     string    `gorm:"type:varchar(255);uniqueIndex" json:"email"`
 	Password  string    `gorm:"type:varchar(255);not null" json:"-"`
 	FullName  string    `gorm:"type:varchar(255)" json:"full_name"`
 	Company   string    `gorm:"type:varchar(255)" json:"company"`
@@ -21,36 +29,36 @@ type Developer struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
-	// Relations
+	// Relations (only for developers)
 	Plugins []Plugin `gorm:"foreignKey:DeveloperID;references:ID" json:"plugins,omitempty"`
 }
 
-func (d *Developer) BeforeCreate(tx *gorm.DB) error {
-	if d.ID == "" {
-		d.ID = uuid.New().String()
+func (u *User) BeforeCreate(tx *gorm.DB) error {
+	if u.ID == "" {
+		u.ID = uuid.New().String()
 	}
 	return nil
 }
 
-func (d *Developer) SetPassword(plain string) error {
+func (u *User) SetPassword(plain string) error {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(plain), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	d.Password = string(hashed)
+	u.Password = string(hashed)
 	return nil
 }
 
-func (d *Developer) CheckPassword(plain string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(d.Password), []byte(plain)) == nil
+func (u *User) CheckPassword(plain string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plain)) == nil
 }
 
-func (d *Developer) AvatarLetter() string {
-	if len(d.FullName) > 0 {
-		return string(d.FullName[0])
+func (u *User) AvatarLetter() string {
+	if len(u.FullName) > 0 {
+		return string(u.FullName[0])
 	}
-	if len(d.Username) > 0 {
-		return string(d.Username[0])
+	if len(u.Username) > 0 {
+		return string(u.Username[0])
 	}
 	return "?"
 }

@@ -31,7 +31,7 @@ type Plugin struct {
 	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 
 	Versions  []Version  `gorm:"foreignKey:PluginID" json:"versions,omitempty"`
-	Developer *Developer `gorm:"foreignKey:DeveloperID;references:ID" json:"developer,omitempty"`
+	Developer *User `gorm:"foreignKey:DeveloperID;references:ID" json:"developer,omitempty"`
 }
 
 func (p *Plugin) BeforeCreate(tx *gorm.DB) error {

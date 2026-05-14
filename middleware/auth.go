@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mbarek-hani/FluxHUB/models"
 	"github.com/mbarek-hani/FluxHUB/services"
+	"github.com/mbarek-hani/FluxHUB/utils"
 )
 
 func AdminAuth() gin.HandlerFunc {
@@ -34,21 +36,30 @@ func SessionAuth(sessions *services.SessionStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cookie, err := c.Cookie("flux_session")
 		if err != nil {
-			c.Redirect(http.StatusFound, "/admin/login")
+			c.Redirect(http.StatusFound, "/login")
 			c.Abort()
 			return
 		}
 
-		session, ok := sessions.Get(cookie)
-		if !ok || session.Kind != services.SessionAdmin {
+		decryptedCookie, err := utils.Decrypt(cookie)
+		if err != nil {
 			c.SetCookie("flux_session", "", -1, "/", "", false, true)
-			c.Redirect(http.StatusFound, "/admin/login")
+			c.Redirect(http.StatusFound, "/login")
 			c.Abort()
 			return
 		}
 
-		c.Set("admin_id", session.UserID)
-		c.Set("admin_username", session.Username)
+		user, ok := sessions.Get(decryptedCookie)
+		if !ok || user.Role != models.RoleAdmin {
+			c.SetCookie("flux_session", "", -1, "/", "", false, true)
+			c.Redirect(http.StatusFound, "/login")
+			c.Abort()
+			return
+		}
+
+		c.Set("user_id", user.ID)
+		c.Set("user_username", user.Username)
+		c.Set("user_role", string(user.Role))
 		c.Next()
 	}
 }
@@ -56,25 +67,34 @@ func SessionAuth(sessions *services.SessionStore) gin.HandlerFunc {
 // DeveloperAuth protects developer portal routes
 func DeveloperAuth(sessions *services.SessionStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		cookie, err := c.Cookie("dev_session")
+		cookie, err := c.Cookie("flux_session")
 		if err != nil {
-			c.Redirect(http.StatusFound, "/dev/login")
+			c.Redirect(http.StatusFound, "/login")
 			c.Abort()
 			return
 		}
 
-		session, ok := sessions.Get(cookie)
-		if !ok || session.Kind != services.SessionDeveloper {
-			c.SetCookie("dev_session", "", -1, "/", "", false, true)
-			c.Redirect(http.StatusFound, "/dev/login")
+		decryptedCookie, err := utils.Decrypt(cookie)
+		if err != nil {
+			c.SetCookie("flux_session", "", -1, "/", "", false, true)
+			c.Redirect(http.StatusFound, "/login")
 			c.Abort()
 			return
 		}
 
-		c.Set("dev_id", session.UserID)
-		c.Set("dev_username", session.Username)
-		c.Set("dev_email", session.Email)
-		c.Set("dev_fullname", session.FullName)
+		user, ok := sessions.Get(decryptedCookie)
+		if !ok || user.Role != models.RoleDeveloper {
+			c.SetCookie("flux_session", "", -1, "/", "", false, true)
+			c.Redirect(http.StatusFound, "/login")
+			c.Abort()
+			return
+		}
+
+		c.Set("user_id", user.ID)
+		c.Set("user_username", user.Username)
+		c.Set("user_role", string(user.Role))
+		c.Set("dev_email", user.Email)
+		c.Set("dev_fullname", user.FullName)
 		c.Next()
 	}
 }

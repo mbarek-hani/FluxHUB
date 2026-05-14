@@ -22,6 +22,16 @@ func main() {
 	if !*fresh {
 		slog.Info("Running normal migration... (Use -fresh to drop all tables first)")
 		database.Connect()
+		err := database.DB.AutoMigrate(
+			&models.User{},
+			&models.Plugin{},
+			&models.Version{},
+			&models.Session{},
+		)
+		if err != nil {
+			slog.Error(fmt.Sprintf("Failed to migrate tables: %v", err))
+			os.Exit(1)
+		}
 		slog.Info("Migration complete!")
 		return
 	}
@@ -30,10 +40,10 @@ func main() {
 	database.Connect()
 
 	err := database.DB.Migrator().DropTable(
-		&models.Developer{},
+		&models.User{},
 		&models.Plugin{},
 		&models.Version{},
-		&models.Admin{},
+		&models.Session{},
 	)
 
 	if err != nil {
@@ -45,10 +55,10 @@ func main() {
 
 	slog.Info("Running fresh migration...")
 	err = database.DB.AutoMigrate(
-		&models.Developer{},
+		&models.User{},
 		&models.Plugin{},
 		&models.Version{},
-		&models.Admin{},
+		&models.Session{},
 	)
 
 	if err != nil {

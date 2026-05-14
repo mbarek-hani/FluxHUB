@@ -27,8 +27,9 @@ func main() {
 		return
 	}
 
-	admin := models.Admin{
+	admin := models.User{
 		Username: *username,
+		Role:     models.RoleAdmin,
 	}
 	if err := admin.SetPassword(*password); err != nil {
 		slog.Error(fmt.Sprintf("Error hashing password: %v", err))

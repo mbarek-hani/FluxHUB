@@ -1,43 +1,16 @@
 package services
 
 import (
-	"errors"
+	"crypto/rand"
+	"encoding/hex"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/mbarek-hani/FluxHUB/database"
+	"github.com/mbarek-hani/FluxHUB/models"
 )
-
-type SessionKind string
-
-const (
-	SessionAdmin     SessionKind = "admin"
-	SessionDeveloper SessionKind = "developer"
-)
-
-var jwtSecret = []byte("super-secret-flux-key-change-me-in-production")
-
-type Session struct {
-	ID        string
-	UserID    string
-	Username  string
-	Email     string
-	FullName  string
-	Kind      SessionKind
-	CreatedAt time.Time
-	ExpiresAt time.Time
-}
 
 type SessionStore struct {
 	ttl time.Duration
-}
-
-type sessionClaims struct {
-	UserID   string      `json:"uid"`
-	Username string      `json:"uname"`
-	Email    string      `json:"eml,omitempty"`
-	FullName string      `json:"fname,omitempty"`
-	Kind     SessionKind `json:"kind"`
-	jwt.RegisteredClaims
 }
 
 func NewSessionStore(ttl time.Duration) *SessionStore {
@@ -46,61 +19,47 @@ func NewSessionStore(ttl time.Duration) *SessionStore {
 	}
 }
 
-func (s *SessionStore) Create(userID, username, email, fullName string, kind SessionKind) (string, error) {
-	now := time.Now()
-	expiresAt := now.Add(s.ttl)
-
-	claims := sessionClaims{
-		UserID:   userID,
-		Username: username,
-		Email:    email,
-		FullName: fullName,
-		Kind:     kind,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expiresAt),
-			IssuedAt:  jwt.NewNumericDate(now),
-			ID:        userID,
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+func generateToken() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return hex.EncodeToString(b)
 }
 
-func (s *SessionStore) Get(tokenString string) (*Session, bool) {
+func (s *SessionStore) Create(userID string) (string, error) {
+	now := time.Now()
+	expiresAt := now.Add(s.ttl)
+	token := generateToken()
+
+	session := models.Session{
+		UserID:    userID,
+		Token:     token,
+		ExpiresAt: expiresAt,
+		CreatedAt: now,
+	}
+
+	if err := database.DB.Create(&session).Error; err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func (s *SessionStore) Get(tokenString string) (*models.User, bool) {
 	if tokenString == "" {
 		return nil, false
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, &sessionClaims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected signing method")
-		}
-		return jwtSecret, nil
-	})
-
-	if err != nil || !token.Valid {
+	var session models.Session
+	if err := database.DB.Preload("User").Where("token = ? AND expires_at > ?", tokenString, time.Now()).First(&session).Error; err != nil {
 		return nil, false
 	}
 
-	claims, ok := token.Claims.(*sessionClaims)
-	if !ok {
-		return nil, false
-	}
-
-	return &Session{
-		ID:        tokenString, // Just use the token as the ID
-		UserID:    claims.UserID,
-		Username:  claims.Username,
-		Email:     claims.Email,
-		FullName:  claims.FullName,
-		Kind:      claims.Kind,
-		CreatedAt: claims.IssuedAt.Time,
-		ExpiresAt: claims.ExpiresAt.Time,
-	}, true
+	return &session.User, true
 }
 
-func (s *SessionStore) Destroy(sessionID string) {
-	// Stateless JWT, no server-side destroy needed.
-	// The client removes the cookie.
+func (s *SessionStore) Destroy(tokenString string) {
+	if tokenString == "" {
+		return
+	}
+	database.DB.Where("token = ?", tokenString).Delete(&models.Session{})
 }

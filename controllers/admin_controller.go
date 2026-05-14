@@ -129,7 +129,7 @@ func (ac *AdminController) GetDiff(c *gin.Context) {
 type ApproveRequest struct {
 	Version string `json:"version" binding:"required"`
 	Comment string `json:"comment"`
-	AdminID string `json:"admin_id" binding:"required"`
+	AdminID string `json:"user_id" binding:"required"`
 }
 
 // Approve - POST /v1/admin/approve/:id
@@ -240,7 +240,7 @@ func (ac *AdminController) Reject(c *gin.Context) {
 
 	var req struct {
 		Reason  string `json:"reason" binding:"required"`
-		AdminID string `json:"admin_id" binding:"required"`
+		AdminID string `json:"user_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {

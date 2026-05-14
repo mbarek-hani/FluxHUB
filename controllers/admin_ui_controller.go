@@ -38,7 +38,7 @@ func NewAdminUIController(
 }
 
 func (ctrl *AdminUIController) getUsername(c *gin.Context) string {
-	if u, ok := c.Get("admin_username"); ok {
+	if u, ok := c.Get("user_username"); ok {
 		return fmt.Sprintf("%v", u)
 	}
 	return "admin"

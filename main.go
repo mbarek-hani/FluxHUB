@@ -206,7 +206,7 @@ func main() {
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	slog.Info(fmt.Sprintf("FluxHUB on http://localhost%s", addr))
-	slog.Info(fmt.Sprintf("Admin UI: http://localhost%s/admin/login", addr))
+	slog.Info(fmt.Sprintf("Unified Login: http://localhost%s/login", addr))
 	router.Run(addr)
 }
 

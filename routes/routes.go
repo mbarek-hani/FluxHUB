@@ -57,13 +57,14 @@ func SetupRoutes(router *gin.Engine, cfg RouterConfig) {
 		}
 	}
 
+	// ---- Unified Auth ----
+	router.GET("/login", cfg.AuthCtrl.ShowLogin)
+	router.POST("/login", cfg.AuthCtrl.Login)
+	router.POST("/logout", cfg.AuthCtrl.Logout)
+
 	// ---- Admin UI (session-based) ----
 	admin := router.Group("/admin")
 	{
-		// Auth routes (no session required)
-		admin.GET("/login", cfg.AuthCtrl.ShowLogin)
-		admin.POST("/login", cfg.AuthCtrl.Login)
-		admin.POST("/logout", cfg.AuthCtrl.Logout)
 
 		// Protected UI routes
 		protected := admin.Group("")
@@ -90,11 +91,8 @@ func SetupRoutes(router *gin.Engine, cfg RouterConfig) {
 	// Developer Portal
 	dev := router.Group("/dev")
 	{
-		dev.GET("/login", cfg.DevCtrl.ShowLogin)
-		dev.POST("/login", cfg.DevCtrl.Login)
 		dev.GET("/register", cfg.DevCtrl.ShowRegister)
 		dev.POST("/register", cfg.DevCtrl.Register)
-		dev.POST("/logout", cfg.DevCtrl.Logout)
 
 		protected := dev.Group("")
 		protected.Use(middleware.DeveloperAuth(cfg.SessionStore))
@@ -113,7 +111,7 @@ func SetupRoutes(router *gin.Engine, cfg RouterConfig) {
 
 	// Root redirect
 	router.GET("/", func(c *gin.Context) {
-		c.Redirect(302, "/dev/login")
+		c.Redirect(302, "/login")
 	})
 
 	// Health

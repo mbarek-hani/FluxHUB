@@ -26,7 +26,13 @@ go install github.com/a-h/templ/cmd/templ@latest
 
 ### Initializing the Project
 
-Install the necessary Node.js dependencies for Tailwind CSS:
+First, set up your environment variables and generate an application encryption key:
+```bash
+cp .example.env .env
+go run cmd/key/main.go
+```
+
+Then, install the necessary Node.js dependencies for Tailwind CSS:
 ```bash
 npm install
 ```
