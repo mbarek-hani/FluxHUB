@@ -3,14 +3,13 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mbarek-hani/FluxHUB/database"
 	"github.com/mbarek-hani/FluxHUB/models"
 	"github.com/mbarek-hani/FluxHUB/services"
+	"github.com/mbarek-hani/FluxHUB/views/pages"
 )
 
 type AdminUIController struct {
@@ -55,18 +54,9 @@ func (ctrl *AdminUIController) Dashboard(c *gin.Context) {
 	database.DB.Order("created_at DESC").Limit(10).Find(&recentPlugins)
 
 	// Pre-format dates for each plugin
-	type PluginRow struct {
-		ID             string
-		Name           string
-		DeveloperID    string
-		CurrentVersion string
-		Status         string
-		CreatedAt      string
-	}
-
-	rows := make([]PluginRow, len(recentPlugins))
+	rows := make([]pages.AdminPluginRow, len(recentPlugins))
 	for i, p := range recentPlugins {
-		rows[i] = PluginRow{
+		rows[i] = pages.AdminPluginRow{
 			ID:             p.ID,
 			Name:           p.Name,
 			DeveloperID:    p.DeveloperID,
@@ -76,16 +66,15 @@ func (ctrl *AdminUIController) Dashboard(c *gin.Context) {
 		}
 	}
 
+	stats := pages.AdminDashboardStats{
+		TotalPlugins: int(totalPlugins),
+		Pending:      pending,
+		Approved:     approved,
+		Rejected:     rejected,
+	}
+
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	ctrl.renderer.Render(c.Writer, "dashboard", gin.H{
-		"Username":      ctrl.getUsername(c),
-		"TotalPlugins":  totalPlugins,
-		"Pending":       pending,
-		"Approved":      approved,
-		"Rejected":      rejected,
-		"RecentPlugins": rows,
-		"Active":        "dashboard",
-	})
+	pages.AdminDashboard(ctrl.getUsername(c), stats, rows).Render(c.Request.Context(), c.Writer)
 }
 
 func (ctrl *AdminUIController) PluginsList(c *gin.Context) {
@@ -97,20 +86,9 @@ func (ctrl *AdminUIController) PluginsList(c *gin.Context) {
 	}
 	query.Find(&plugins)
 
-	type PluginRow struct {
-		ID             string
-		Name           string
-		Description    string
-		DeveloperID    string
-		CurrentVersion string
-		Status         string
-		VersionCount   int
-		CreatedAt      time.Time
-	}
-
-	rows := make([]PluginRow, len(plugins))
+	rows := make([]pages.AdminPluginListRow, len(plugins))
 	for i, p := range plugins {
-		rows[i] = PluginRow{
+		rows[i] = pages.AdminPluginListRow{
 			ID:             p.ID,
 			Name:           p.Name,
 			Description:    p.Description,
@@ -118,17 +96,12 @@ func (ctrl *AdminUIController) PluginsList(c *gin.Context) {
 			CurrentVersion: p.CurrentVersion,
 			Status:         string(p.Status),
 			VersionCount:   len(p.Versions),
-			CreatedAt:      p.CreatedAt,
+			CreatedAt:      p.CreatedAt.Format("Jan 02, 2006"),
 		}
 	}
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	ctrl.renderer.Render(c.Writer, "plugins_list", gin.H{
-		"Username": ctrl.getUsername(c),
-		"Plugins":  rows,
-		"Filter":   statusFilter,
-		"Active":   "plugins",
-	})
+	pages.AdminPluginsList(ctrl.getUsername(c), rows, statusFilter).Render(c.Request.Context(), c.Writer)
 }
 
 func (ctrl *AdminUIController) PluginReview(c *gin.Context) {
@@ -146,14 +119,13 @@ func (ctrl *AdminUIController) PluginReview(c *gin.Context) {
 	}
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	ctrl.renderer.Render(c.Writer, "plugin_review", gin.H{
-		"Username":     ctrl.getUsername(c),
-		"Plugin":       plugin,
-		"ScanReport":   scanReport,
-		"PluginStatus": string(plugin.Status),
-		"CreatedAt":    plugin.CreatedAt.Format("January 02, 2006 15:04 UTC"), // ← pre-format
-		"Active":       "plugins",
-	})
+	pages.AdminPluginReview(
+		ctrl.getUsername(c),
+		plugin,
+		scanReport,
+		string(plugin.Status),
+		plugin.CreatedAt.Format("January 02, 2006 15:04 UTC"),
+	).Render(c.Request.Context(), c.Writer)
 }
 
 func (ctrl *AdminUIController) PluginBrowse(c *gin.Context) {
@@ -176,14 +148,12 @@ func (ctrl *AdminUIController) PluginBrowse(c *gin.Context) {
 	tagsJSON, _ := json.Marshal(tags)
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	ctrl.renderer.Render(c.Writer, "plugin_browse", gin.H{
-		"Username":   ctrl.getUsername(c),
-		"Plugin":     plugin,
-		"Tags":       tags,
-		"TagsJSON":   template.JS(tagsJSON),
-		"CurrentRef": ref,
-		"Active":     "plugins",
-	})
+	pages.AdminPluginBrowse(
+		ctrl.getUsername(c),
+		plugin,
+		ref,
+		string(tagsJSON),
+	).Render(c.Request.Context(), c.Writer)
 }
 
 func (ctrl *AdminUIController) PluginDiff(c *gin.Context) {
@@ -199,15 +169,13 @@ func (ctrl *AdminUIController) PluginDiff(c *gin.Context) {
 	tagsJSON, _ := json.Marshal(tags)
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	ctrl.renderer.Render(c.Writer, "plugin_diff", gin.H{
-		"Username": ctrl.getUsername(c),
-		"Plugin":   plugin,
-		"Tags":     tags,
-		"TagsJSON": template.JS(tagsJSON),
-		"FromRef":  c.Query("from"),
-		"ToRef":    c.Query("to"),
-		"Active":   "plugins",
-	})
+	pages.AdminPluginDiff(
+		ctrl.getUsername(c),
+		plugin,
+		c.Query("from"),
+		c.Query("to"),
+		string(tagsJSON),
+	).Render(c.Request.Context(), c.Writer)
 }
 
 // ---- AJAX API ----

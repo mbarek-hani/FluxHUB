@@ -22,8 +22,8 @@ templ Login(errorMsg string) {
 				}
 
 				<form method="POST" action="/login" class="space-y-4">
-					@components.Input("username", "username", "Username", "text", true, "Enter your username")
-					@components.Input("password", "password", "Password", "password", true, "Enter your password")
+					@components.Input("username", "username", "Username", "text", true, "Enter your username", "", "", false)
+					@components.Input("password", "password", "Password", "password", true, "Enter your password", "", "", false)
 					
 					<div class="pt-2">
 						@components.Button("Sign in", "submit", "primary", "w-full")

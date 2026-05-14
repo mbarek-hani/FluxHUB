@@ -1,0 +1,107 @@
+package pages
+
+import (
+	"fmt"
+	"github.com/mbarek-hani/FluxHUB/views/layouts"
+)
+
+type AdminDashboardStats struct {
+	TotalPlugins int
+	Pending      int64
+	Approved     int64
+	Rejected     int64
+}
+
+type AdminPluginRow struct {
+	ID             string
+	Name           string
+	DeveloperID    string
+	CurrentVersion string
+	Status         string
+	CreatedAt      string
+}
+
+templ AdminDashboard(username string, stats AdminDashboardStats, recentPlugins []AdminPluginRow) {
+	@layouts.Admin("Dashboard", username, "dashboard") {
+		<div class="mb-8">
+			<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Overview of FluxHUB marketplace activity.</p>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+			<!-- Stats Cards -->
+			<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+				<div class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Plugins</div>
+				<div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{ fmt.Sprint(stats.TotalPlugins) }</div>
+			</div>
+			<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+				<div class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Pending Review</div>
+				<div class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{ fmt.Sprint(stats.Pending) }</div>
+			</div>
+			<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+				<div class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Approved</div>
+				<div class="text-3xl font-bold text-green-600 dark:text-green-400">{ fmt.Sprint(stats.Approved) }</div>
+			</div>
+			<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+				<div class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Rejected</div>
+				<div class="text-3xl font-bold text-red-600 dark:text-red-400">{ fmt.Sprint(stats.Rejected) }</div>
+			</div>
+		</div>
+
+		<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+			<div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700">
+				<h2 class="text-lg font-medium text-gray-900 dark:text-white">Recent Submissions</h2>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="w-full text-left text-sm whitespace-nowrap">
+					<thead class="bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400">
+						<tr>
+							<th class="px-6 py-3 font-medium">Name</th>
+							<th class="px-6 py-3 font-medium">Developer</th>
+							<th class="px-6 py-3 font-medium">Version</th>
+							<th class="px-6 py-3 font-medium">Status</th>
+							<th class="px-6 py-3 font-medium">Submitted</th>
+							<th class="px-6 py-3 font-medium"></th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+						if len(recentPlugins) == 0 {
+							<tr>
+								<td colspan="6" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+									No plugins submitted yet.
+								</td>
+							</tr>
+						} else {
+							for _, p := range recentPlugins {
+								<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+									<td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{ p.Name }</td>
+									<td class="px-6 py-4 text-gray-600 dark:text-gray-400">{ p.DeveloperID }</td>
+									<td class="px-6 py-4">
+										<span class="inline-flex items-center px-2 py-1 rounded text-xs font-mono bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+											{ p.CurrentVersion }
+										</span>
+									</td>
+									<td class="px-6 py-4">
+										if p.Status == "pending" {
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">Pending</span>
+										} else if p.Status == "approved" {
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Approved</span>
+										} else {
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">Rejected</span>
+										}
+									</td>
+									<td class="px-6 py-4 text-gray-500 dark:text-gray-400">{ p.CreatedAt }</td>
+									<td class="px-6 py-4 text-right">
+										<a href={ templ.URL(fmt.Sprintf("/admin/plugins/%s/review", p.ID)) } class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors">
+											Review
+										</a>
+									</td>
+								</tr>
+							}
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	}
+}

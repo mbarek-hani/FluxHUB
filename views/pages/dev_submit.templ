@@ -1,0 +1,141 @@
+package pages
+
+import (
+	"github.com/mbarek-hani/FluxHUB/views/layouts"
+	"github.com/mbarek-hani/FluxHUB/views/components"
+)
+
+templ DevSubmit(username string, avatarLetter string, errorMsg string) {
+	@layouts.Developer("Submit Plugin", username, avatarLetter, "submit") {
+		<div class="mb-8">
+			<nav class="flex mb-2" aria-label="Breadcrumb">
+				<ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm">
+					<li class="inline-flex items-center">
+						<a href="/dev/dashboard" class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400">Dashboard</a>
+					</li>
+					<li>
+						<div class="flex items-center">
+							<svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+								<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+							</svg>
+							<span class="ml-1 text-gray-900 dark:text-white font-medium">Submit Plugin</span>
+						</div>
+					</li>
+				</ol>
+			</nav>
+			<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Submit a New Plugin</h1>
+		</div>
+
+		if errorMsg != "" {
+			@components.Alert(getSubmitErrorMessage(errorMsg), "error")
+		}
+
+		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+			<!-- Form Panel -->
+			<div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+				<div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+					<h2 class="text-lg font-medium text-gray-900 dark:text-white">Plugin Information</h2>
+				</div>
+				<div class="p-6">
+					<form method="POST" action="/dev/submit">
+						@components.Input("name", "name", "Plugin Identifier *", "text", true, "my-awesome-plugin", "Unique name in kebab-case (e.g. my-analytics)", "", false)
+						
+						@components.Input("repo_url", "repo_url", "Git Repository URL *", "url", true, "https://github.com/yourname/your-plugin", "Must be a publicly accessible Git repository", "", false)
+
+						@components.TextArea("description", "description", "Description", false, "This plugin adds... and provides...", "4", "Briefly describe what your plugin does", "")
+
+						<div class="pt-4">
+							<button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium">
+								<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+									<line x1="12" y1="5" x2="12" y2="19" />
+									<line x1="5" y1="12" x2="19" y2="12" />
+								</svg>
+								Submit for Review
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+
+			<!-- Guidelines & Process Sidebar -->
+			<div class="space-y-6">
+				<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+					<div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
+						<svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<circle cx="12" cy="12" r="10" />
+							<line x1="12" y1="16" x2="12" y2="12" />
+							<line x1="12" y1="8" x2="12.01" y2="8" />
+						</svg>
+						<h3 class="font-semibold text-gray-900 dark:text-white">Submission Guidelines</h3>
+					</div>
+					<div class="p-6">
+						<ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+							<li class="flex gap-2">
+								<span class="text-blue-600 dark:text-blue-400">•</span>
+								<span>Your repository must be publicly accessible</span>
+							</li>
+							<li class="flex gap-2">
+								<span class="text-blue-600 dark:text-blue-400">•</span>
+								<span>Include a valid <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">manifest.json</code> at the root</span>
+							</li>
+							<li class="flex gap-2">
+								<span class="text-blue-600 dark:text-blue-400">•</span>
+								<span>Tag your releases (e.g. <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">v1.0.0</code>)</span>
+							</li>
+							<li class="flex gap-2">
+								<span class="text-blue-600 dark:text-blue-400">•</span>
+								<span>Your plugin must extend <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">AbstractPlugin</code></span>
+							</li>
+							<li class="flex gap-2">
+								<span class="text-blue-600 dark:text-blue-400">•</span>
+								<span>No dangerous PHP functions (exec, eval, etc.)</span>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+				<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+					<div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+						<h3 class="font-semibold text-gray-900 dark:text-white">Review Process</h3>
+					</div>
+					<div class="p-6 space-y-6">
+						<div class="flex gap-4">
+							<div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 font-bold text-sm">1</div>
+							<div>
+								<div class="font-semibold text-gray-900 dark:text-white text-sm">Submission</div>
+								<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Your repo is cloned and automatically scanned for security issues.</p>
+							</div>
+						</div>
+						<div class="flex gap-4">
+							<div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 font-bold text-sm">2</div>
+							<div>
+								<div class="font-semibold text-gray-900 dark:text-white text-sm">Manual Review</div>
+								<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Our team reviews the code, manifest, and security scan results.</p>
+							</div>
+						</div>
+						<div class="flex gap-4">
+							<div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 font-bold text-sm">3</div>
+							<div>
+								<div class="font-semibold text-gray-900 dark:text-white text-sm">Publishing</div>
+								<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Approved plugins are packaged, signed with RSA, and listed on the marketplace.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+func getSubmitErrorMessage(code string) string {
+	switch code {
+	case "required":
+		return "Name and repository URL are required."
+	case "name_taken":
+		return "A plugin with this name already exists."
+	case "server":
+		return "Server error. Please try again."
+	default:
+		return "An error occurred."
+	}
+}

@@ -13,6 +13,7 @@ import (
 	"github.com/mbarek-hani/FluxHUB/database"
 	"github.com/mbarek-hani/FluxHUB/models"
 	"github.com/mbarek-hani/FluxHUB/services"
+	"github.com/mbarek-hani/FluxHUB/views/pages"
 )
 
 type DeveloperController struct {
@@ -70,9 +71,7 @@ func (dc *DeveloperController) ShowRegister(c *gin.Context) {
 		}
 	}
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	dc.renderer.Render(c.Writer, "dev_register", gin.H{
-		"Error": c.Query("error"),
-	})
+	pages.Register(c.Query("error")).Render(c.Request.Context(), c.Writer)
 }
 
 func (dc *DeveloperController) Register(c *gin.Context) {
@@ -168,31 +167,11 @@ func (dc *DeveloperController) Dashboard(c *gin.Context) {
 	database.DB.Model(&models.Plugin{}).Where("developer_id = ? AND status = ?", devID, "rejected").Count(&rejected)
 
 	// Build plugin rows with pre-formatted data
-	type VersionRow struct {
-		Tag       string
-		Signed    bool
-		Changelog string
-	}
-	type PluginRow struct {
-		ID             string
-		Name           string
-		Description    string
-		RepoURL        string
-		CurrentVersion string
-		Status         string
-		CreatedAt      string
-		UpdatedAt      string
-		VersionCount   int
-		Versions       []VersionRow
-		ScanIssues     int
-		HasCritical    bool
-	}
-
-	rows := make([]PluginRow, len(plugins))
+	rows := make([]pages.DevPluginRow, len(plugins))
 	for i, p := range plugins {
-		vRows := make([]VersionRow, len(p.Versions))
+		vRows := make([]pages.VersionRow, len(p.Versions))
 		for j, v := range p.Versions {
-			vRows[j] = VersionRow{
+			vRows[j] = pages.VersionRow{
 				Tag:       v.Tag,
 				Signed:    v.Signature != "",
 				Changelog: v.Changelog,
@@ -210,7 +189,7 @@ func (dc *DeveloperController) Dashboard(c *gin.Context) {
 			}
 		}
 
-		rows[i] = PluginRow{
+		rows[i] = pages.DevPluginRow{
 			ID:             p.ID,
 			Name:           p.Name,
 			Description:    p.Description,
@@ -226,31 +205,20 @@ func (dc *DeveloperController) Dashboard(c *gin.Context) {
 		}
 	}
 
+	stats := pages.DevDashboardStats{
+		TotalPlugins: len(plugins),
+		Pending:      int(pending),
+		Approved:     int(approved),
+		Rejected:     int(rejected),
+	}
+
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	dc.renderer.Render(c.Writer, "dev_dashboard", gin.H{
-		"Dev":          dev,
-		"Username":     dev.Username,
-		"FullName":     dev.FullName,
-		"AvatarLetter": dev.AvatarLetter(),
-		"Plugins":      rows,
-		"TotalPlugins": len(plugins),
-		"Pending":      pending,
-		"Approved":     approved,
-		"Rejected":     rejected,
-		"Active":       "dashboard",
-	})
+	pages.DevDashboard(dev.Username, dev.FullName, dev.AvatarLetter(), stats, rows).Render(c.Request.Context(), c.Writer)
 }
 
 func (dc *DeveloperController) ShowSubmit(c *gin.Context) {
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	dc.renderer.Render(c.Writer, "dev_submit", gin.H{
-		"Username":     dc.getDevUsername(c),
-		"FullName":     dc.getDevFullName(c),
-		"AvatarLetter": string([]rune(dc.getDevFullName(c))[:1]),
-		"Active":       "submit",
-		"Error":        c.Query("error"),
-		"Success":      c.Query("success"),
-	})
+	pages.DevSubmit(dc.getDevUsername(c), string([]rune(dc.getDevFullName(c))[:1]), c.Query("error")).Render(c.Request.Context(), c.Writer)
 }
 
 func (dc *DeveloperController) Submit(c *gin.Context) {
@@ -310,39 +278,28 @@ func (dc *DeveloperController) PluginDetail(c *gin.Context) {
 		json.Unmarshal([]byte(plugin.ScanResult), &scanReport)
 	}
 
-	type VersionRow struct {
-		Tag        string
-		Signed     bool
-		SHA256Hash string
-		Changelog  string
-		CreatedAt  string
-	}
-
-	vRows := make([]VersionRow, len(plugin.Versions))
+	vRows := make([]pages.DevPluginDetailVersion, len(plugin.Versions))
 	for i, v := range plugin.Versions {
-		vRows[i] = VersionRow{
+		vRows[i] = pages.DevPluginDetailVersion{
 			Tag:        v.Tag,
 			Signed:     v.Signature != "",
 			SHA256Hash: v.SHA256Hash,
-			Changelog:  v.Changelog,
 			CreatedAt:  v.CreatedAt.Format("Jan 02, 2006"),
 		}
 	}
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	dc.renderer.Render(c.Writer, "dev_plugin_detail", gin.H{
-		"Username":     dc.getDevUsername(c),
-		"FullName":     dc.getDevFullName(c),
-		"AvatarLetter": string([]rune(dc.getDevFullName(c) + "?")[:1]),
-		"Plugin":       plugin,
-		"PluginStatus": string(plugin.Status),
-		"CreatedAt":    plugin.CreatedAt.Format("January 02, 2006 15:04 UTC"),
-		"UpdatedAt":    plugin.UpdatedAt.Format("January 02, 2006 15:04 UTC"),
-		"ScanReport":   scanReport,
-		"Versions":     vRows,
-		"Active":       "plugins",
-		"DownloadBase": fmt.Sprintf("/v1/plugins/download/%s", plugin.ID),
-	})
+	pages.DevPluginDetail(
+		dc.getDevUsername(c),
+		string([]rune(dc.getDevFullName(c)+"?")[:1]),
+		plugin,
+		string(plugin.Status),
+		plugin.CreatedAt.Format("January 02, 2006 15:04 UTC"),
+		plugin.UpdatedAt.Format("January 02, 2006 15:04 UTC"),
+		vRows,
+		scanReport,
+		fmt.Sprintf("/v1/plugins/download/%s", plugin.ID),
+	).Render(c.Request.Context(), c.Writer)
 }
 
 func (dc *DeveloperController) ShowProfile(c *gin.Context) {
@@ -354,16 +311,9 @@ func (dc *DeveloperController) ShowProfile(c *gin.Context) {
 		return
 	}
 
+	success := c.Query("success") == "true"
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	dc.renderer.Render(c.Writer, "dev_profile", gin.H{
-		"Username":     dev.Username,
-		"FullName":     dev.FullName,
-		"AvatarLetter": dev.AvatarLetter(),
-		"Dev":          dev,
-		"Active":       "profile",
-		"Success":      c.Query("success"),
-		"Error":        c.Query("error"),
-	})
+	pages.DevProfile(dev.Username, dev.AvatarLetter(), dev, success, c.Query("error")).Render(c.Request.Context(), c.Writer)
 }
 
 func (dc *DeveloperController) UpdateProfile(c *gin.Context) {

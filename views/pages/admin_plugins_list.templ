@@ -1,0 +1,92 @@
+package pages
+
+import (
+	"fmt"
+	"github.com/mbarek-hani/FluxHUB/views/layouts"
+)
+
+type AdminPluginListRow struct {
+	ID             string
+	Name           string
+	Description    string
+	DeveloperID    string
+	CurrentVersion string
+	Status         string
+	VersionCount   int
+	CreatedAt      string
+}
+
+templ AdminPluginsList(username string, plugins []AdminPluginListRow, filter string) {
+	@layouts.Admin("Plugins", username, "plugins") {
+		<div class="mb-8">
+			<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Plugins</h1>
+		</div>
+
+		<div class="mb-6 flex flex-wrap gap-2">
+			<a href="/admin/plugins?status=all" class={ "px-4 py-2 rounded-lg text-sm font-medium transition-colors", templ.KV("bg-blue-600 text-white", filter == "all" || filter == ""), templ.KV("bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700", filter != "all" && filter != "") }>All</a>
+			<a href="/admin/plugins?status=pending" class={ "px-4 py-2 rounded-lg text-sm font-medium transition-colors", templ.KV("bg-blue-600 text-white", filter == "pending"), templ.KV("bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700", filter != "pending") }>Pending</a>
+			<a href="/admin/plugins?status=approved" class={ "px-4 py-2 rounded-lg text-sm font-medium transition-colors", templ.KV("bg-blue-600 text-white", filter == "approved"), templ.KV("bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700", filter != "approved") }>Approved</a>
+			<a href="/admin/plugins?status=rejected" class={ "px-4 py-2 rounded-lg text-sm font-medium transition-colors", templ.KV("bg-blue-600 text-white", filter == "rejected"), templ.KV("bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700", filter != "rejected") }>Rejected</a>
+		</div>
+
+		<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+			<div class="overflow-x-auto">
+				<table class="w-full text-left text-sm whitespace-nowrap">
+					<thead class="bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400">
+						<tr>
+							<th class="px-6 py-3 font-medium">Plugin</th>
+							<th class="px-6 py-3 font-medium">Developer</th>
+							<th class="px-6 py-3 font-medium">Version</th>
+							<th class="px-6 py-3 font-medium">Status</th>
+							<th class="px-6 py-3 font-medium">Versions</th>
+							<th class="px-6 py-3 font-medium">Submitted</th>
+							<th class="px-6 py-3 font-medium">Actions</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+						if len(plugins) == 0 {
+							<tr>
+								<td colspan="7" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+									No plugins found.
+								</td>
+							</tr>
+						} else {
+							for _, p := range plugins {
+								<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+									<td class="px-6 py-4">
+										<div class="font-bold text-gray-900 dark:text-white">{ p.Name }</div>
+										if p.Description != "" {
+											<div class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{ p.Description }</div>
+										}
+									</td>
+									<td class="px-6 py-4 text-gray-600 dark:text-gray-400">{ p.DeveloperID }</td>
+									<td class="px-6 py-4">
+										<code class="text-xs font-mono bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 px-1.5 py-0.5 rounded">{ p.CurrentVersion }</code>
+									</td>
+									<td class="px-6 py-4">
+										if p.Status == "pending" {
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">Pending</span>
+										} else if p.Status == "approved" {
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Approved</span>
+										} else {
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">Rejected</span>
+										}
+									</td>
+									<td class="px-6 py-4 text-gray-600 dark:text-gray-400">{ fmt.Sprint(p.VersionCount) }</td>
+									<td class="px-6 py-4 text-gray-500 dark:text-gray-400">{ p.CreatedAt }</td>
+									<td class="px-6 py-4">
+										<div class="flex items-center gap-2">
+											<a href={ templ.URL(fmt.Sprintf("/admin/plugins/%s/review", p.ID)) } class="px-3 py-1 text-xs font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Review</a>
+											<a href={ templ.URL(fmt.Sprintf("/admin/plugins/%s/browse", p.ID)) } class="px-3 py-1 text-xs font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Browse</a>
+											<a href={ templ.URL(fmt.Sprintf("/admin/plugins/%s/diff", p.ID)) } class="px-3 py-1 text-xs font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Diff</a>
+										</div>
+									</td>
+								</tr>
+							}
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	}
+}

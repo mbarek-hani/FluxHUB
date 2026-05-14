@@ -13,42 +13,23 @@ templ Base(title string) {
 			<link rel="stylesheet" href="/static/css/output.css"/>
 			
 			<!-- Alpine.js -->
-			<script defer src="/static/js/alpine.js"></script>
+			<script defer src="/vendor/alpine.js"></script>
 			
+			<!-- Highlight.js -->
+			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css"/>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+			
+			<!-- FluxHUB JS -->
+			<script src="/static/js/app.js"></script>
+
 			<!-- Google Fonts -->
 			<link rel="preconnect" href="https://fonts.googleapis.com"/>
 			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 			<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 		</head>
 		<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 font-sans min-h-screen flex flex-col transition-colors duration-200">
-			<!-- Top Navigation -->
-			<header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50">
-				<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div class="flex justify-between h-16 items-center">
-						<div class="flex items-center gap-3">
-							<a href="/" class="flex items-center gap-2 text-xl font-bold text-blue-600 dark:text-blue-400">
-								<img src="/static/icons/favicon.svg" alt="FluxHUB Logo" class="w-8 h-8"/>
-								FluxHUB
-							</a>
-						</div>
-						
-						<!-- Theme Toggle -->
-						<button @click="darkMode = !darkMode" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-							<svg x-show="!darkMode" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-							</svg>
-							<svg x-show="darkMode" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-							</svg>
-						</button>
-					</div>
-				</div>
-			</header>
-
-			<!-- Main Content -->
-			<main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-				{ children... }
-			</main>
+			{ children... }
+			<div class="toast-container" id="toasts"></div>
 		</body>
 	</html>
 }

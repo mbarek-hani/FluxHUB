@@ -1,0 +1,191 @@
+package pages
+
+import (
+	"fmt"
+	"github.com/mbarek-hani/FluxHUB/views/layouts"
+	"github.com/mbarek-hani/FluxHUB/models"
+)
+
+type DevPluginDetailVersion struct {
+	Tag        string
+	Signed     bool
+	SHA256Hash string
+	CreatedAt  string
+}
+
+templ DevPluginDetail(username string, avatarLetter string, plugin models.Plugin, pluginStatus string, createdAt string, updatedAt string, versions []DevPluginDetailVersion, scanReport models.ScanReport, downloadBase string) {
+	@layouts.Developer(plugin.Name, username, avatarLetter, "dashboard") {
+		<div class="mb-8">
+			<nav class="flex mb-2" aria-label="Breadcrumb">
+				<ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm">
+					<li class="inline-flex items-center">
+						<a href="/dev/dashboard" class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400">Dashboard</a>
+					</li>
+					<li>
+						<div class="flex items-center">
+							<svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+								<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+							</svg>
+							<span class="ml-1 text-gray-900 dark:text-white font-medium truncate max-w-[200px]">{ plugin.Name }</span>
+						</div>
+					</li>
+				</ol>
+			</nav>
+			<div class="flex items-center gap-4">
+				<h1 class="text-2xl font-bold text-gray-900 dark:text-white">{ plugin.Name }</h1>
+				if pluginStatus == "pending" {
+					<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">Pending</span>
+				} else if pluginStatus == "approved" {
+					<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Approved</span>
+				} else {
+					<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">Rejected</span>
+				}
+			</div>
+		</div>
+
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+			<!-- Details Panel -->
+			<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+				<div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+					<h2 class="text-lg font-medium text-gray-900 dark:text-white">Plugin Details</h2>
+				</div>
+				<div class="p-6 space-y-4">
+					<div class="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 border-b border-gray-50 dark:border-gray-700 last:border-0 gap-1">
+						<span class="text-sm font-medium text-gray-500 dark:text-gray-400 shrink-0">Repository</span>
+						<a href={ templ.SafeURL(plugin.RepoURL) } target="_blank" class="text-sm text-blue-600 dark:text-blue-400 hover:underline break-all">{ plugin.RepoURL }</a>
+					</div>
+					<div class="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
+						<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Current Version</span>
+						<code class="text-sm font-mono text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{ plugin.CurrentVersion }</code>
+					</div>
+					<div class="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
+						<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Submitted</span>
+						<span class="text-sm text-gray-900 dark:text-white">{ createdAt }</span>
+					</div>
+					<div class="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
+						<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated</span>
+						<span class="text-sm text-gray-900 dark:text-white">{ updatedAt }</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Versions Panel -->
+			<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+				<div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+					<h2 class="text-lg font-medium text-gray-900 dark:text-white">Versions</h2>
+				</div>
+				<div class="p-6 space-y-4 max-h-[400px] overflow-y-auto">
+					if len(versions) == 0 {
+						<div class="text-center py-8 text-gray-500 dark:text-gray-400">
+							No versions found. Make sure your repo has Git tags.
+						</div>
+					} else {
+						for _, v := range versions {
+							<div class="flex flex-col gap-1 py-3 border-b border-gray-50 dark:border-gray-700 last:border-0">
+								<div class="flex justify-between items-center">
+									<code class="text-sm font-mono font-bold text-gray-900 dark:text-white">{ v.Tag }</code>
+									if v.Signed {
+										<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 uppercase tracking-wider">Signed</span>
+									} else {
+										<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 uppercase tracking-wider">Pending</span>
+									}
+								</div>
+								if v.Signed && v.SHA256Hash != "" {
+									<div class="text-[10px] font-mono text-gray-400 dark:text-gray-500 break-all">{ v.SHA256Hash }</div>
+								}
+								<div class="text-[11px] text-gray-500 dark:text-gray-500">{ v.CreatedAt }</div>
+							</div>
+						}
+					}
+				</div>
+			</div>
+		</div>
+
+		<!-- Status Banner -->
+		<div class="mb-8">
+			if pluginStatus == "pending" {
+				<div class="flex items-start gap-4 p-5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400 rounded-xl border border-yellow-100 dark:border-yellow-800/30">
+					<div class="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center shrink-0">
+						<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+					</div>
+					<div>
+						<h4 class="font-bold">Under Review</h4>
+						<p class="text-sm mt-1">Your plugin is currently being reviewed. You'll be notified when a decision is made.</p>
+					</div>
+				</div>
+			} else if pluginStatus == "approved" {
+				<div class="flex items-start gap-4 p-5 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400 rounded-xl border border-green-100 dark:border-green-800/30">
+					<div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center shrink-0">
+						<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+					</div>
+					<div>
+						<h4 class="font-bold">Live on Marketplace</h4>
+						<p class="text-sm mt-1">Your plugin is approved and publicly available. Download URL: <code class="bg-white/50 dark:bg-black/20 px-1 rounded font-mono">{ downloadBase }/{ plugin.CurrentVersion }</code></p>
+					</div>
+				</div>
+			} else if pluginStatus == "rejected" {
+				<div class="flex items-start gap-4 p-5 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-800/30">
+					<div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center shrink-0">
+						<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
+					</div>
+					<div>
+						<h4 class="font-bold">Rejected</h4>
+						<p class="text-sm mt-1">This submission was rejected. Please address the issues below and submit a new version.</p>
+					</div>
+				</div>
+			}
+		</div>
+
+		<!-- Security Scan Report Panel -->
+		<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-8">
+			<div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex flex-wrap items-center gap-3">
+				<div class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white mr-auto">
+					<svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+					</svg>
+					Security Scan Report
+				</div>
+				
+				if scanReport.HasDangerousCode {
+					<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/50">Critical issues found</span>
+				} else if scanReport.TotalIssues > 0 {
+					<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800/50">{ fmt.Sprint(scanReport.TotalIssues) } warnings</span>
+				} else {
+					<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800/50">Clean</span>
+				}
+			</div>
+			<div class="p-6">
+				if scanReport.ScannedFiles > 0 {
+					<p class="text-xs text-gray-500 dark:text-gray-400 mb-6">
+						Scanned { fmt.Sprint(scanReport.ScannedFiles) } PHP files
+					</p>
+				}
+				
+				if len(scanReport.Findings) > 0 {
+					<div class="space-y-6">
+						for _, f := range scanReport.Findings {
+							<div class="bg-gray-50 dark:bg-gray-900/40 rounded-lg border border-gray-100 dark:border-gray-700/60 p-4">
+								<div class="flex flex-wrap items-center gap-3 mb-2">
+									if f.Severity == "danger" || f.Severity == "critical" {
+										<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-400 uppercase tracking-wider">{ f.Severity }</span>
+									} else {
+										<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-400 uppercase tracking-wider">{ f.Severity }</span>
+									}
+									<span class="text-xs font-mono text-gray-600 dark:text-gray-400 break-all">{ f.File }:{ fmt.Sprint(f.Line) }</span>
+									<code class="text-[10px] font-mono text-gray-400 dark:text-gray-500 ml-auto">{ f.Pattern }</code>
+								</div>
+								<div class="text-sm font-mono bg-white dark:bg-gray-950 p-3 rounded border border-gray-100 dark:border-gray-800 text-gray-800 dark:text-gray-300 overflow-x-auto whitespace-pre">
+									{ f.Context }
+								</div>
+							</div>
+						}
+					</div>
+				} else {
+					<div class="text-center py-8 text-gray-500 dark:text-gray-400">
+						No issues detected.
+					</div>
+				}
+			</div>
+		</div>
+	}
+}

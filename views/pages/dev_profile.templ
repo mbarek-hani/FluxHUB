@@ -1,0 +1,98 @@
+package pages
+
+import (
+	"github.com/mbarek-hani/FluxHUB/views/layouts"
+	"github.com/mbarek-hani/FluxHUB/views/components"
+	"github.com/mbarek-hani/FluxHUB/models"
+)
+
+templ DevProfile(username string, avatarLetter string, dev models.User, success bool, errorMsg string) {
+	@layouts.Developer("Profile Settings", username, avatarLetter, "profile") {
+		<div class="mb-8">
+			<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
+		</div>
+
+		if success {
+			@components.Alert("Profile updated successfully.", "success")
+		}
+
+		if errorMsg != "" {
+			@components.Alert(getProfileErrorMessage(errorMsg), "error")
+		}
+
+		<form method="POST" action="/dev/profile">
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+				<!-- Personal Information Panel -->
+				<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+					<div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+						<h2 class="text-lg font-medium text-gray-900 dark:text-white">Personal Information</h2>
+					</div>
+					<div class="p-6 space-y-4">
+						@components.Input("username_display", "", "Username", "text", false, "", "Username cannot be changed.", dev.Username, true)
+						
+						@components.Input("email_display", "", "Email", "text", false, "", "", dev.Email, true)
+
+						@components.Input("full_name", "full_name", "Full Name", "text", false, "", "", dev.FullName, false)
+
+						@components.Input("company", "company", "Company / Organization", "text", false, "", "", dev.Company, false)
+
+						@components.Input("website", "website", "Website", "url", false, "", "", dev.Website, false)
+
+						@components.TextArea("bio", "bio", "Bio", false, "Tell us about yourself...", "3", "", dev.Bio)
+					</div>
+				</div>
+
+				<!-- Password & Account Info -->
+				<div class="space-y-6">
+					<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+						<div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+							<h2 class="text-lg font-medium text-gray-900 dark:text-white">Change Password</h2>
+						</div>
+						<div class="p-6 space-y-4">
+							@components.Input("current_password", "current_password", "Current Password", "password", false, "Leave blank to keep current", "", "", false)
+							
+							@components.Input("new_password", "new_password", "New Password", "password", false, "Min. 8 characters", "", "", false)
+
+							@components.Input("confirm_password", "confirm_password", "Confirm New Password", "password", false, "", "", "", false)
+						</div>
+					</div>
+
+					<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+						<div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+							<h2 class="text-lg font-medium text-gray-900 dark:text-white">Account Info</h2>
+						</div>
+						<div class="p-6 space-y-4">
+							<div class="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
+								<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Member since</span>
+								<span class="text-sm text-gray-900 dark:text-white">{ dev.CreatedAt.Format("Jan 02, 2006") }</span>
+							</div>
+							<div class="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
+								<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Developer ID</span>
+								<span class="text-xs font-mono text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{ dev.ID }</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="mt-8 flex justify-end">
+				@components.Button("Save Changes", "submit", "primary", "px-8 py-2.5")
+			</div>
+		</form>
+	}
+}
+
+func getProfileErrorMessage(code string) string {
+	switch code {
+	case "wrong_password":
+		return "Current password is incorrect."
+	case "password_short":
+		return "New password must be at least 8 characters."
+	case "password_mismatch":
+		return "New passwords do not match."
+	case "server":
+		return "Server error. Please try again."
+	default:
+		return "An error occurred."
+	}
+}

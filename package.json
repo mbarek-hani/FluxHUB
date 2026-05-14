@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/mbarek-hani/FluxHUB#readme",
   "devDependencies": {
+    "@tailwindcss/cli": "^4.3.0",
     "tailwindcss": "^4.3.0"
   },
   "dependencies": {
