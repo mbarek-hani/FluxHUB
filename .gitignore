@@ -1,21 +1,37 @@
-vendor
-node_modules
-# Binaire compilé
-tmp
+vendor/
+node_modules/
+
+# Compiled binary
+tmp/
 *.exe
 
-# Base de données SQLite
+# SQLite database
 *.db
 
-# Clés RSA
+# RSA keys
 keys/
 *.pem
 
-# Stockage des dépôts clonés et ZIPs
+# Cloned repo storage and ZIPs
 storage/
 
-# Variables d'environnement
+# Environment variables
 .env
 
 # Logs
 *.log
+build-errors.log
+
+# ---- Generated files (do not commit) ----
+
+# Tailwind compiled output
+static/css/output.css
+
+# Templ generated Go files
+views/**/*_templ.go
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
