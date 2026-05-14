@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/mbarek-hani/FluxHUB/models"
@@ -40,17 +40,11 @@ func Connect() {
 		Logger: logger.Default.LogMode(logger.Warn),
 	})
 	if err != nil {
-		log.Fatalf("DB connection failed: %v", err)
+		slog.Error("DB connection failed", "error", err)
+		os.Exit(1)
 	}
 
-	log.Printf("✅ DB connected (%s)", dbDriver)
-
-	DB.AutoMigrate(
-		&models.Developer{},
-		&models.Plugin{},
-		&models.Version{},
-		&models.Admin{},
-	)
+	slog.Info("DB connected", "driver", dbDriver)
 
 	seedAdmin()
 }
@@ -62,7 +56,7 @@ func seedAdmin() {
 		admin := models.Admin{Username: getEnv("ADMIN_USERNAME", "admin")}
 		admin.SetPassword(getEnv("ADMIN_PASSWORD", "flux2024!"))
 		DB.Create(&admin)
-		log.Printf("🔑 Default admin created: %s", admin.Username)
+		slog.Info("Default admin created", "username", admin.Username)
 	}
 }
 

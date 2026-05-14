@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,7 +21,8 @@ type GitManager struct {
 
 func NewGitManager(storagePath string) *GitManager {
 	if err := os.MkdirAll(storagePath, 0750); err != nil {
-		log.Fatalf("Cannot create git storage: %v", err)
+		slog.Error(fmt.Sprintf("Cannot create git storage: %v", err))
+		os.Exit(1)
 	}
 	return &GitManager{StoragePath: storagePath}
 }

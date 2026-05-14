@@ -3,7 +3,8 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -121,7 +122,7 @@ func (pc *PluginController) ListApproved(c *gin.Context) {
 
 // processPluginInBackground exécute le clonage et l'analyse en goroutine
 func (pc *PluginController) processPluginInBackground(pluginID, repoURL string) {
-	log.Printf("[Background] Démarrage du traitement du plugin %s", pluginID)
+	slog.Info(fmt.Sprintf("[Background] Démarrage du traitement du plugin %s", pluginID))
 
 	// Timeout de 5 minutes pour le clonage
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
@@ -130,7 +131,7 @@ func (pc *PluginController) processPluginInBackground(pluginID, repoURL string) 
 	// Cloner le dépôt
 	cloneResult, err := pc.gitManager.CloneRepository(ctx, repoURL, pluginID)
 	if err != nil {
-		log.Printf("[Background] Échec du clonage pour %s: %v", pluginID, err)
+		slog.Info(fmt.Sprintf("[Background] Échec du clonage pour %s: %v", pluginID, err))
 		database.DB.Model(&models.Plugin{}).
 			Where("id = ?", pluginID).
 			Update("status", models.StatusRejected)
@@ -146,7 +147,7 @@ func (pc *PluginController) processPluginInBackground(pluginID, repoURL string) 
 	// Analyser le code PHP
 	scanReport, err := pc.scanner.ScanDirectory(cloneResult.LocalPath)
 	if err != nil {
-		log.Printf("[Background] Échec du scan pour %s: %v", pluginID, err)
+		slog.Info(fmt.Sprintf("[Background] Échec du scan pour %s: %v", pluginID, err))
 		return
 	}
 
@@ -161,7 +162,7 @@ func (pc *PluginController) processPluginInBackground(pluginID, repoURL string) 
 	if err := database.DB.Model(&models.Plugin{}).
 		Where("id = ?", pluginID).
 		Updates(updates).Error; err != nil {
-		log.Printf("[Background] Impossible de mettre à jour le plugin %s: %v", pluginID, err)
+		slog.Info(fmt.Sprintf("[Background] Impossible de mettre à jour le plugin %s: %v", pluginID, err))
 		return
 	}
 
@@ -180,12 +181,12 @@ func (pc *PluginController) processPluginInBackground(pluginID, repoURL string) 
 			FirstOrCreate(&version)
 	}
 
-	log.Printf("[Background] Plugin %s traité. Tags: %v, Issues: %d, Critique: %v",
+	slog.Info(fmt.Sprintf("[Background] Plugin %s traité. Tags: %v, Issues: %d, Critique: %v",
 		pluginID,
 		cloneResult.Tags,
 		scanReport.TotalIssues,
 		scanReport.HasDangerousCode,
-	)
+	))
 }
 
 // GetScanResult retourne le résultat d'analyse d'un plugin (pour debug)

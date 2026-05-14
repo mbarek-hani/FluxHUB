@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
@@ -13,7 +13,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/mbarek-hani/FluxHUB/controllers"
 	"github.com/mbarek-hani/FluxHUB/database"
-	"github.com/mbarek-hani/FluxHUB/middleware"
+	"github.com/mbarek-hani/FluxHUB/routes"
 	"github.com/mbarek-hani/FluxHUB/services"
 )
 
@@ -153,17 +153,18 @@ func (tr *TemplateRegistry) Render(w interface{ Write([]byte) (int, error) }, na
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, relying on system environment variables")
+		slog.Info(fmt.Sprint("No .env file found, relying on system environment variables"))
 	}
 
 	cfg := loadConfig()
 
 	if cfg.AdminToken == "" {
-		log.Println("ADMIN_API_TOKEN not set. API token auth disabled.")
+		slog.Info(fmt.Sprint("ADMIN_API_TOKEN not set. API token auth disabled."))
 	}
 
 	if err := ensureKeyExists(cfg.PrivateKeyPath); err != nil {
-		log.Fatalf("Key error: %v", err)
+		slog.Error(fmt.Sprintf("Key error: %v", err))
+		os.Exit(1)
 	}
 
 	gin.SetMode(cfg.GinMode)
@@ -173,7 +174,8 @@ func main() {
 	scanner := services.NewCodeScanner()
 	signer, err := services.NewSigner(cfg.PrivateKeyPath)
 	if err != nil {
-		log.Fatalf("Signer error: %v", err)
+		slog.Error(fmt.Sprintf("Signer error: %v", err))
+		os.Exit(1)
 	}
 	packager := services.NewPackager(cfg.ZipsPath)
 	sessionStore := services.NewSessionStore(30 * 24 * time.Hour)
@@ -191,123 +193,32 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
-	// Security headers
-	router.Use(func(c *gin.Context) {
-		c.Header("X-Content-Type-Options", "nosniff")
-		c.Header("X-Frame-Options", "DENY")
-		c.Header("X-XSS-Protection", "1; mode=block")
-		c.Next()
-	})
-
-	router.Static("/static", "./static")
-
-	// ---- Public API v1 ----
-	v1 := router.Group("/v1")
-	{
-		plugins := v1.Group("/plugins")
-		{
-			plugins.POST("/submit", pluginCtrl.Submit)
-			plugins.GET("", pluginCtrl.ListApproved)
-			plugins.GET("/download/:id/:version", downloadCtrl.Download)
-			plugins.GET("/:id/versions", downloadCtrl.GetVersionInfo)
-			plugins.GET("/:id/scan", pluginCtrl.GetScanResult)
-		}
-		v1.GET("/public-key", downloadCtrl.GetPublicKey)
-
-		// Token-protected API
-		if cfg.AdminToken != "" {
-			adminAPI := v1.Group("/admin")
-			adminAPI.Use(middleware.AdminAuth())
-			{
-				adminAPI.GET("/review/:id", adminAPICtrl.Review)
-				adminAPI.GET("/diff/:id", adminAPICtrl.GetDiff)
-				adminAPI.POST("/approve/:id", adminAPICtrl.Approve)
-				adminAPI.POST("/reject/:id", adminAPICtrl.Reject)
-				adminAPI.GET("/plugins/pending", adminAPICtrl.ListPending)
-				adminAPI.POST("/rescan/:id", adminAPICtrl.RescanPlugin)
-			}
-		}
-	}
-
-	// ---- Admin UI (session-based) ----
-	admin := router.Group("/admin")
-	{
-		// Auth routes (no session required)
-		admin.GET("/login", authCtrl.ShowLogin)
-		admin.POST("/login", authCtrl.Login)
-		admin.POST("/logout", authCtrl.Logout)
-
-		// Protected UI routes
-		protected := admin.Group("")
-		protected.Use(middleware.SessionAuth(sessionStore))
-		{
-			protected.GET("/dashboard", adminUICtrl.Dashboard)
-			protected.GET("/plugins", adminUICtrl.PluginsList)
-			protected.GET("/plugins/:id/review", adminUICtrl.PluginReview)
-			protected.GET("/plugins/:id/browse", adminUICtrl.PluginBrowse)
-			protected.GET("/plugins/:id/diff", adminUICtrl.PluginDiff)
-
-			// AJAX API for UI
-			api := protected.Group("/api")
-			{
-				api.GET("/plugins/:id/tree", adminUICtrl.APIGetFileTree)
-				api.GET("/plugins/:id/file", adminUICtrl.APIGetFileContent)
-				api.GET("/plugins/:id/diff", adminUICtrl.APIGetDiff)
-				api.POST("/plugins/:id/approve", adminUICtrl.APIApprovePlugin)
-				api.POST("/plugins/:id/reject", adminUICtrl.APIRejectPlugin)
-			}
-		}
-	}
-
-	// Developer Portal
-	dev := router.Group("/dev")
-	{
-		dev.GET("/login", devCtrl.ShowLogin)
-		dev.POST("/login", devCtrl.Login)
-		dev.GET("/register", devCtrl.ShowRegister)
-		dev.POST("/register", devCtrl.Register)
-		dev.POST("/logout", devCtrl.Logout)
-
-		protected := dev.Group("")
-		protected.Use(middleware.DeveloperAuth(sessionStore))
-		{
-			protected.GET("/dashboard", devCtrl.Dashboard)
-			protected.GET("/submit", devCtrl.ShowSubmit)
-			protected.POST("/submit", devCtrl.Submit)
-			protected.GET("/plugins/:id", devCtrl.PluginDetail)
-			protected.GET("/profile", devCtrl.ShowProfile)
-			protected.POST("/profile", devCtrl.UpdateProfile)
-
-			// AJAX
-			protected.GET("/api/plugins/:id/status", devCtrl.APIGetPluginStatus)
-		}
-	}
-
-	// Root redirect
-	router.GET("/", func(c *gin.Context) {
-		c.Redirect(302, "/dev/login")
-	})
-
-	// Health
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "healthy", "service": "flux-marketplace"})
+	routes.SetupRoutes(router, routes.RouterConfig{
+		AdminToken:   cfg.AdminToken,
+		PluginCtrl:   pluginCtrl,
+		AdminAPICtrl: adminAPICtrl,
+		DownloadCtrl: downloadCtrl,
+		AuthCtrl:     authCtrl,
+		AdminUICtrl:  adminUICtrl,
+		DevCtrl:      devCtrl,
+		SessionStore: sessionStore,
 	})
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
-	log.Printf("FluxHUB on http://localhost%s", addr)
-	log.Printf("Admin UI: http://localhost%s/admin/login", addr)
+	slog.Info(fmt.Sprintf("FluxHUB on http://localhost%s", addr))
+	slog.Info(fmt.Sprintf("Admin UI: http://localhost%s/admin/login", addr))
 	router.Run(addr)
 }
 
 func ensureKeyExists(privateKeyPath string) error {
 	if _, err := os.Stat(privateKeyPath); os.IsNotExist(err) {
-		log.Println("Generating RSA 4096 key pair...")
+		slog.Info(fmt.Sprint("Generating RSA 4096 key pair..."))
 		os.MkdirAll("./keys", 0700)
 		publicKeyPath := "./keys/nexus_public.pem"
 		if err := services.GenerateKeyPair(privateKeyPath, publicKeyPath); err != nil {
 			return err
 		}
-		log.Printf("Keys generated: %s, %s", privateKeyPath, publicKeyPath)
+		slog.Info(fmt.Sprintf("Keys generated: %s, %s", privateKeyPath, publicKeyPath))
 	}
 	return nil
 }

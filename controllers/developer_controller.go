@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -125,7 +125,7 @@ func (dc *DeveloperController) Register(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&dev).Error; err != nil {
-		log.Printf("Error creating developer: %v", err)
+		slog.Info(fmt.Sprintf("Error creating developer: %v", err))
 		c.Redirect(http.StatusFound, "/dev/register?error=server")
 		return
 	}
@@ -462,14 +462,14 @@ func (dc *DeveloperController) UpdateProfile(c *gin.Context) {
 
 // processPlugin clones and scans in background
 func (dc *DeveloperController) processPlugin(pluginID, repoURL string) {
-	log.Printf("🚀 [Dev] Processing plugin %s", pluginID)
+	slog.Info(fmt.Sprintf("[Dev] Processing plugin %s", pluginID))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
 	cloneResult, err := dc.gitManager.CloneRepository(ctx, repoURL, pluginID)
 	if err != nil {
-		log.Printf("❌ [Dev] Clone failed for %s: %v", pluginID, err)
+		slog.Info(fmt.Sprintf("[Dev] Clone failed for %s: %v", pluginID, err))
 		database.DB.Model(&models.Plugin{}).
 			Where("id = ?", pluginID).
 			Update("status", models.StatusRejected)
@@ -483,7 +483,7 @@ func (dc *DeveloperController) processPlugin(pluginID, repoURL string) {
 
 	scanReport, err := dc.scanner.ScanDirectory(cloneResult.LocalPath)
 	if err != nil {
-		log.Printf("❌ [Dev] Scan failed for %s: %v", pluginID, err)
+		slog.Info(fmt.Sprintf("[Dev] Scan failed for %s: %v", pluginID, err))
 	}
 
 	scanJSON := ""
@@ -510,7 +510,7 @@ func (dc *DeveloperController) processPlugin(pluginID, repoURL string) {
 			FirstOrCreate(&version)
 	}
 
-	log.Printf("✅ [Dev] Plugin %s processed. Tags: %v", pluginID, cloneResult.Tags)
+	slog.Info(fmt.Sprintf("[Dev] Plugin %s processed. Tags: %v", pluginID, cloneResult.Tags))
 }
 
 // APIGetPluginStatus — AJAX polling endpoint for real-time status

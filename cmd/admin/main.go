@@ -3,7 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
+	"log/slog"
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/mbarek-hani/FluxHUB/database"
@@ -12,10 +13,9 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, proceeding with system environment variables")
+		slog.Info("No .env file found, proceeding with system environment variables")
 	}
-	
-	// Connect to database
+
 	database.Connect()
 
 	username := flag.String("username", "", "Admin username")
@@ -23,7 +23,7 @@ func main() {
 	flag.Parse()
 
 	if *username == "" || *password == "" {
-		fmt.Println("Usage: go run cmd/admin/main.go -username <username> -password <password>")
+		slog.Error("Usage: go run cmd/admin/main.go -username <username> -password <password>")
 		return
 	}
 
@@ -31,12 +31,14 @@ func main() {
 		Username: *username,
 	}
 	if err := admin.SetPassword(*password); err != nil {
-		log.Fatalf("Error hashing password: %v", err)
+		slog.Error(fmt.Sprintf("Error hashing password: %v", err))
+		os.Exit(1)
 	}
 
 	if err := database.DB.Create(&admin).Error; err != nil {
-		log.Fatalf("Error creating admin account (might already exist): %v", err)
+		slog.Error(fmt.Sprintf("Error creating admin account (might already exist): %v", err))
+		os.Exit(1)
 	}
 
-	fmt.Printf("✅ Admin account '%s' created successfully!\n", *username)
+	slog.Info(fmt.Sprintf("Admin account '%s' created successfully!", *username))
 }
