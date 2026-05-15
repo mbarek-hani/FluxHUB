@@ -18,20 +18,17 @@ import (
 
 type DeveloperController struct {
 	sessions   *services.SessionStore
-	renderer   Renderer
 	gitManager *services.GitManager
 	scanner    *services.CodeScanner
 }
 
 func NewDeveloperController(
 	sessions *services.SessionStore,
-	renderer Renderer,
 	gm *services.GitManager,
 	sc *services.CodeScanner,
 ) *DeveloperController {
 	return &DeveloperController{
 		sessions:   sessions,
-		renderer:   renderer,
 		gitManager: gm,
 		scanner:    sc,
 	}
@@ -61,87 +58,6 @@ func (dc *DeveloperController) getDevFullName(c *gin.Context) string {
 }
 
 // ---- Pages ----
-
-func (dc *DeveloperController) ShowRegister(c *gin.Context) {
-	// Already logged in?
-	if cookie, err := c.Cookie("flux_session"); err == nil {
-		if sess, ok := dc.sessions.Get(cookie); ok && sess.Role == models.RoleDeveloper {
-			c.Redirect(http.StatusFound, "/dev/dashboard")
-			return
-		}
-	}
-	c.Header("Content-Type", "text/html; charset=utf-8")
-	pages.Register(c.Query("error")).Render(c.Request.Context(), c.Writer)
-}
-
-func (dc *DeveloperController) Register(c *gin.Context) {
-	username := c.PostForm("username")
-	email := c.PostForm("email")
-	password := c.PostForm("password")
-	confirm := c.PostForm("confirm_password")
-	fullName := c.PostForm("full_name")
-	company := c.PostForm("company")
-	website := c.PostForm("website")
-
-	// Validations
-	if username == "" || email == "" || password == "" {
-		c.Redirect(http.StatusFound, "/dev/register?error=required")
-		return
-	}
-
-	if len(password) < 8 {
-		c.Redirect(http.StatusFound, "/dev/register?error=password_short")
-		return
-	}
-
-	if password != confirm {
-		c.Redirect(http.StatusFound, "/dev/register?error=password_mismatch")
-		return
-	}
-
-	// Check uniqueness
-	var existingCount int64
-	database.DB.Model(&models.User{}).
-		Where("username = ? OR email = ?", username, email).
-		Count(&existingCount)
-
-	if existingCount > 0 {
-		c.Redirect(http.StatusFound, "/dev/register?error=exists")
-		return
-	}
-
-	dev := models.User{
-		Username: username,
-		Email:    email,
-		FullName: fullName,
-		Company:  company,
-		Website:  website,
-	}
-
-	if err := dev.SetPassword(password); err != nil {
-		c.Redirect(http.StatusFound, "/dev/register?error=server")
-		return
-	}
-
-	if err := database.DB.Create(&dev).Error; err != nil {
-		slog.Info(fmt.Sprintf("Error creating developer: %v", err))
-		c.Redirect(http.StatusFound, "/dev/register?error=server")
-		return
-	}
-
-	// Auto-login after registration
-	sessionID, err := dc.sessions.Create(
-		dev.ID)
-	if err != nil {
-		c.Redirect(http.StatusFound, "/login")
-		return
-	}
-
-	c.SetCookie("flux_session", sessionID, 86400*30, "/", "", false, true)
-	c.Redirect(http.StatusFound, "/dev/dashboard")
-}
-
-
 
 func (dc *DeveloperController) Dashboard(c *gin.Context) {
 	devID := dc.getDevID(c)
@@ -291,7 +207,7 @@ func (dc *DeveloperController) PluginDetail(c *gin.Context) {
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	pages.DevPluginDetail(
 		dc.getDevUsername(c),
-		string([]rune(dc.getDevFullName(c)+"?")[:1]),
+		string([]rune(dc.getDevFullName(c) + "?")[:1]),
 		plugin,
 		string(plugin.Status),
 		plugin.CreatedAt.Format("January 02, 2006 15:04 UTC"),

@@ -11,17 +11,12 @@ import (
 	"github.com/mbarek-hani/FluxHUB/views/pages"
 )
 
-type Renderer interface {
-	Render(w interface{ Write([]byte) (int, error) }, name string, data interface{}) error
-}
-
 type AuthController struct {
 	sessions *services.SessionStore
-	renderer Renderer
 }
 
-func NewAuthController(sessions *services.SessionStore, renderer Renderer) *AuthController {
-	return &AuthController{sessions: sessions, renderer: renderer}
+func NewAuthController(sessions *services.SessionStore) *AuthController {
+	return &AuthController{sessions: sessions}
 }
 
 func (ac *AuthController) ShowLogin(c *gin.Context) {
@@ -59,6 +54,11 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
+	if user.Role != models.RoleAdmin {
+		c.Redirect(http.StatusFound, "/login?error=admin_only")
+		return
+	}
+
 	sessionID, err := ac.sessions.Create(user.ID)
 	if err != nil {
 		c.Redirect(http.StatusFound, "/login?error=server")
@@ -74,11 +74,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 	// 1-day expiration (86400 seconds)
 	c.SetCookie("flux_session", encryptedSession, 86400, "/", "", false, true)
 
-	if user.Role == models.RoleAdmin {
-		c.Redirect(http.StatusFound, "/admin/dashboard")
-	} else {
-		c.Redirect(http.StatusFound, "/dev/dashboard")
-	}
+	c.Redirect(http.StatusFound, "/admin/dashboard")
 }
 
 func (ac *AuthController) Logout(c *gin.Context) {

@@ -17,7 +17,6 @@ type AdminUIController struct {
 	signer     *services.Signer
 	packager   *services.Packager
 	scanner    *services.CodeScanner
-	renderer   Renderer
 }
 
 func NewAdminUIController(
@@ -25,14 +24,12 @@ func NewAdminUIController(
 	sg *services.Signer,
 	pk *services.Packager,
 	sc *services.CodeScanner,
-	renderer Renderer,
 ) *AdminUIController {
 	return &AdminUIController{
 		gitManager: gm,
 		signer:     sg,
 		packager:   pk,
 		scanner:    sc,
-		renderer:   renderer,
 	}
 }
 

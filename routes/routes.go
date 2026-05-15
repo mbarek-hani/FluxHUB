@@ -8,13 +8,13 @@ import (
 )
 
 type RouterConfig struct {
-	AdminToken   string
 	PluginCtrl   *controllers.PluginController
 	AdminAPICtrl *controllers.AdminController
 	DownloadCtrl *controllers.DownloadController
 	AuthCtrl     *controllers.AuthController
 	AdminUICtrl  *controllers.AdminUIController
 	DevCtrl      *controllers.DeveloperController
+	OAuthCtrl    *controllers.OAuthController
 	SessionStore *services.SessionStore
 }
 
@@ -28,7 +28,6 @@ func SetupRoutes(router *gin.Engine, cfg RouterConfig) {
 	})
 
 	router.Static("/static", "./static")
-	router.StaticFile("/vendor/alpine.js", "./node_modules/alpinejs/dist/cdn.min.js")
 
 	// ---- Public API v1 ----
 	v1 := router.Group("/v1")
@@ -42,26 +41,16 @@ func SetupRoutes(router *gin.Engine, cfg RouterConfig) {
 			plugins.GET("/:id/scan", cfg.PluginCtrl.GetScanResult)
 		}
 		v1.GET("/public-key", cfg.DownloadCtrl.GetPublicKey)
-
-		// Token-protected API
-		if cfg.AdminToken != "" {
-			adminAPI := v1.Group("/admin")
-			adminAPI.Use(middleware.AdminAuth())
-			{
-				adminAPI.GET("/review/:id", cfg.AdminAPICtrl.Review)
-				adminAPI.GET("/diff/:id", cfg.AdminAPICtrl.GetDiff)
-				adminAPI.POST("/approve/:id", cfg.AdminAPICtrl.Approve)
-				adminAPI.POST("/reject/:id", cfg.AdminAPICtrl.Reject)
-				adminAPI.GET("/plugins/pending", cfg.AdminAPICtrl.ListPending)
-				adminAPI.POST("/rescan/:id", cfg.AdminAPICtrl.RescanPlugin)
-			}
-		}
 	}
 
 	// ---- Unified Auth ----
 	router.GET("/login", cfg.AuthCtrl.ShowLogin)
 	router.POST("/login", cfg.AuthCtrl.Login)
 	router.POST("/logout", cfg.AuthCtrl.Logout)
+
+	// ---- OAuth ----
+	router.GET("/auth/github", cfg.OAuthCtrl.GithubLogin)
+	router.GET("/auth/github/callback", cfg.OAuthCtrl.GithubCallback)
 
 	// ---- Admin UI (session-based) ----
 	admin := router.Group("/admin")
@@ -92,9 +81,6 @@ func SetupRoutes(router *gin.Engine, cfg RouterConfig) {
 	// Developer Portal
 	dev := router.Group("/dev")
 	{
-		dev.GET("/register", cfg.DevCtrl.ShowRegister)
-		dev.POST("/register", cfg.DevCtrl.Register)
-
 		protected := dev.Group("")
 		protected.Use(middleware.DeveloperAuth(cfg.SessionStore))
 		{

@@ -20,7 +20,8 @@ type User struct {
 	Role      Role      `gorm:"type:varchar(20);not null;default:'developer'" json:"role"`
 	Username  string    `gorm:"type:varchar(100);uniqueIndex;not null" json:"username"`
 	Email     string    `gorm:"type:varchar(255);uniqueIndex" json:"email"`
-	Password  string    `gorm:"type:varchar(255);not null" json:"-"`
+	Password  string    `gorm:"type:varchar(255)" json:"-"` // Can be empty for GitHub users
+	GithubID  string    `gorm:"type:varchar(255);uniqueIndex" json:"github_id"`
 	FullName  string    `gorm:"type:varchar(255)" json:"full_name"`
 	Company   string    `gorm:"type:varchar(255)" json:"company"`
 	Website   string    `gorm:"type:varchar(512)" json:"website"`
