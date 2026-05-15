@@ -22,10 +22,7 @@ import bash       from 'highlight.js/lib/languages/bash'
 import yaml       from 'highlight.js/lib/languages/yaml'
 import plaintext  from 'highlight.js/lib/languages/plaintext'
 
-// Highlight.js theme
-import 'highlight.js/styles/github-dark-dimmed.css'
-
-// App CSS (Tailwind + @layer components)
+// App CSS (Tailwind + @layer components + highlight.js themes)
 import '../css/app.css'
 
 // Alpine components
