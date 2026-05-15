@@ -22,10 +22,8 @@ storage/
 *.log
 build-errors.log
 
-# ---- Generated files (do not commit) ----
-
-# Tailwind compiled output
-static/css/output.css
+# Vite compiled output
+static/dist/
 
 # Templ generated Go files
 views/**/*_templ.go

@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+@source "../../views/**/*.templ";
+@source "../js/**/*.js";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  html {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+/* ============================================================
+   COMPONENTS — these class names are assembled dynamically by
+   JavaScript (e.g. "toast toast-" + type, "diff-" + line.type)
+   so Tailwind's scanner can't see them statically. We define
+   them here using @apply so they use Tailwind tokens and
+   automatically respect the dark: variant.
+   ============================================================ */
+@layer components {
+
+  /* ---- Toast notifications -------------------------------- */
+  .toast-container {
+    @apply fixed bottom-6 right-6 z-[9999] flex flex-col gap-2;
+  }
+
+  .toast {
+    @apply px-5 py-3 rounded-lg text-sm font-medium text-white shadow-lg;
+    animation: slideIn 0.2s ease-out;
+  }
+
+  .toast-success {
+    @apply bg-green-600;
+  }
+
+  .toast-error {
+    @apply bg-red-600;
+  }
+
+  .toast-info {
+    @apply bg-blue-600;
+  }
+
+  /* ---- File browser tree (built by fileBrowser JS) -------- */
+  .tree-item {
+    @apply flex items-center gap-1 px-3 py-0.5 rounded cursor-pointer select-none text-[13px] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700;
+  }
+
+  .tree-item.active {
+    @apply bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300;
+  }
+
+  .tree-item .icon {
+    @apply w-4 h-4 shrink-0;
+  }
+
+  /* ---- Diff viewer (built by diffViewer JS) ---------------- */
+  .diff-container {
+    @apply rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 mb-4;
+  }
+
+  .diff-file-header {
+    @apply flex items-center gap-2 px-3 py-2 cursor-pointer select-none bg-gray-50 dark:bg-gray-900/50 text-[13px] font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700;
+  }
+
+  .diff-file-header .additions {
+    @apply text-green-600 dark:text-green-400 ml-auto;
+  }
+
+  .diff-file-header .deletions {
+    @apply text-red-600 dark:text-red-400 ml-2;
+  }
+
+  .diff-stats-bar {
+    @apply inline-flex gap-0.5 ml-2;
+  }
+
+  .diff-stats-bar .add {
+    @apply inline-block w-2.5 h-2.5 bg-green-500 rounded-sm;
+  }
+
+  .diff-stats-bar .del {
+    @apply inline-block w-2.5 h-2.5 bg-red-500 rounded-sm;
+  }
+
+  .diff-table {
+    @apply w-full border-collapse font-mono text-xs leading-relaxed;
+  }
+
+  .diff-line-num {
+    @apply w-12 text-right px-2 select-none text-gray-400 dark:text-gray-600 border-r border-gray-200 dark:border-gray-700;
+  }
+
+  .diff-line-marker {
+    @apply w-5 text-center px-1 select-none;
+  }
+
+  .diff-line-content {
+    @apply px-2 whitespace-pre overflow-x-auto;
+  }
+
+  .diff-line-content code {
+    @apply bg-transparent p-0;
+  }
+
+  .diff-add {
+    @apply bg-green-50 dark:bg-green-950/30;
+  }
+
+  .diff-del {
+    @apply bg-red-50 dark:bg-red-950/30;
+  }
+
+  .diff-neutral {
+    @apply bg-transparent;
+  }
+
+  .diff-add .diff-line-marker {
+    @apply text-green-600 dark:text-green-400;
+  }
+
+  .diff-del .diff-line-marker {
+    @apply text-red-600 dark:text-red-400;
+  }
+
+  .diff-hunk td {
+    @apply bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 py-0.5 px-3 italic;
+  }
+
+  /* ---- Code browser line numbers (file viewer) ------------ */
+  .line-numbers {
+    @apply font-mono text-xs leading-relaxed py-4 px-3 text-right select-none shrink-0 text-white/20 border-r border-white/5 bg-black/20 whitespace-pre;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

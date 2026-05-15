@@ -1,27 +1,25 @@
 {
   "name": "fluxhub",
   "version": "1.0.0",
-  "description": "FluxHUB is a modern web application built using Go, Templ, Tailwind CSS, and GORM.",
-  "main": "index.js",
+  "description": "FluxHUB — Go plugin marketplace with Vite + Alpine.js + Tailwind CSS v4",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite build --watch",
+    "build": "vite build"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mbarek-hani/FluxHUB.git"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/mbarek-hani/FluxHUB/issues"
-  },
-  "homepage": "https://github.com/mbarek-hani/FluxHUB#readme",
-  "devDependencies": {
-    "@tailwindcss/cli": "^4.3.0",
-    "tailwindcss": "^4.3.0"
-  },
   "dependencies": {
-    "alpinejs": "^3.15.12"
+    "alpinejs": "^3.15.12",
+    "highlight.js": "^11.11.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "tailwindcss": "^4.3.0",
+    "vite": "^6.3.0"
   }
 }

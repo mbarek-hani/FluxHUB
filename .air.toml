@@ -5,9 +5,9 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   entrypoint = "./tmp/main"
-  cmd = "~/go/bin/templ generate && npx tailwindcss -i ./static/css/input.css -o ./static/css/output.css && go build -o ./tmp/main ."
+  cmd = "~/go/bin/templ generate && go build -o ./tmp/main ."
   delay = 1000
-  exclude_dir = ["assets", "tmp", "vendor", "testdata", "storage", "node_modules",".git",".idea"]
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "storage", "node_modules", "static/dist",".git",".idea"]
   exclude_file = []
   exclude_regex = ["_test.go"]
   exclude_unchanged = false
