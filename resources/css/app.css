@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @source "../../views/**/*.templ";
-@source "../../views/**/*.go";
 @source "../js/**/*.js";
 
 /* ---- highlight.js themes ------------------------------------ */
@@ -73,11 +72,28 @@
   color: #8ddb8c;
 }
 
-.dark .hljs-subst         { color: #adbac7; }
-.dark .hljs-section       { color: #316dca; font-weight: bold; }
-.dark .hljs-bullet        { color: #eac55f; }
-.dark .hljs-emphasis      { color: #adbac7; font-style: italic; }
-.dark .hljs-strong        { color: #adbac7; font-weight: bold; }
+.dark .hljs-subst {
+  color: #adbac7;
+}
+
+.dark .hljs-section {
+  color: #316dca;
+  font-weight: bold;
+}
+
+.dark .hljs-bullet {
+  color: #eac55f;
+}
+
+.dark .hljs-emphasis {
+  color: #adbac7;
+  font-style: italic;
+}
+
+.dark .hljs-strong {
+  color: #adbac7;
+  font-weight: bold;
+}
 
 .dark .hljs-addition {
   color: #b4f1b4;
