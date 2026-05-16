@@ -40,6 +40,19 @@ func (ctrl *AdminUIController) getUsername(c *gin.Context) string {
 	return "admin"
 }
 
+func (ctrl *AdminUIController) getId(c *gin.Context) string {
+	if u, ok := c.Get("user_id"); ok {
+		return fmt.Sprintf("%v", u)
+	}
+	return ""
+}
+
+func (ctrl *AdminUIController) getAdmin(c *gin.Context) *models.User {
+	var admin models.User
+	database.DB.Model(&models.User{}).Where("id = ?", ctrl.getId(c)).First(&admin)
+	return &admin
+}
+
 func (ctrl *AdminUIController) Dashboard(c *gin.Context) {
 	var totalPlugins, pending, approved, rejected int64
 	database.DB.Model(&models.Plugin{}).Count(&totalPlugins)
@@ -71,7 +84,7 @@ func (ctrl *AdminUIController) Dashboard(c *gin.Context) {
 	}
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	pages.AdminDashboard(ctrl.getUsername(c), stats, rows).Render(c.Request.Context(), c.Writer)
+	pages.AdminDashboard(ctrl.getUsername(c), ctrl.getAdmin(c).AvatarLetter(), stats, rows).Render(c.Request.Context(), c.Writer)
 }
 
 func (ctrl *AdminUIController) PluginsList(c *gin.Context) {
@@ -98,7 +111,7 @@ func (ctrl *AdminUIController) PluginsList(c *gin.Context) {
 	}
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	pages.AdminPluginsList(ctrl.getUsername(c), rows, statusFilter).Render(c.Request.Context(), c.Writer)
+	pages.AdminPluginsList(ctrl.getUsername(c), ctrl.getAdmin(c).AvatarLetter(), rows, statusFilter).Render(c.Request.Context(), c.Writer)
 }
 
 func (ctrl *AdminUIController) PluginReview(c *gin.Context) {
@@ -118,6 +131,7 @@ func (ctrl *AdminUIController) PluginReview(c *gin.Context) {
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	pages.AdminPluginReview(
 		ctrl.getUsername(c),
+		ctrl.getAdmin(c).AvatarLetter(),
 		plugin,
 		scanReport,
 		string(plugin.Status),
@@ -147,6 +161,7 @@ func (ctrl *AdminUIController) PluginBrowse(c *gin.Context) {
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	pages.AdminPluginBrowse(
 		ctrl.getUsername(c),
+		ctrl.getAdmin(c).AvatarLetter(),
 		plugin,
 		ref,
 		string(tagsJSON),
@@ -168,6 +183,7 @@ func (ctrl *AdminUIController) PluginDiff(c *gin.Context) {
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	pages.AdminPluginDiff(
 		ctrl.getUsername(c),
+		ctrl.getAdmin(c).AvatarLetter(),
 		plugin,
 		c.Query("from"),
 		c.Query("to"),
