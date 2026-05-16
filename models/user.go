@@ -2,6 +2,7 @@ package models
 
 import (
 	"time"
+	"strings"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -56,10 +57,10 @@ func (u *User) CheckPassword(plain string) bool {
 
 func (u *User) AvatarLetter() string {
 	if len(u.FullName) > 0 {
-		return string(u.FullName[0])
+		return strings.ToUpper(string(u.FullName[0]))
 	}
 	if len(u.Username) > 0 {
-		return string(u.Username[0])
+		return strings.ToUpper(string(u.Username[0]))
 	}
 	return "?"
 }
