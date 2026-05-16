@@ -7,7 +7,7 @@ import (
 
 func setupAdminRoutes(router *gin.Engine, cfg RouterConfig) {
 	admin := router.Group("/admin")
-	admin.Use(middleware.SessionAuth(cfg.SessionStore))
+	admin.Use(middleware.AdminAuth(cfg.SessionStore))
 	admin.GET("/dashboard", cfg.AdminUICtrl.Dashboard)
 	admin.GET("/plugins", cfg.AdminUICtrl.PluginsList)
 	admin.GET("/plugins/:id/review", cfg.AdminUICtrl.PluginReview)
