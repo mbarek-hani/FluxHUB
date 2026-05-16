@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"time"
 
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/mbarek-hani/FluxHUB/database"
 	"github.com/mbarek-hani/FluxHUB/models"
@@ -149,6 +151,25 @@ func (dc *DeveloperController) Submit(c *gin.Context) {
 		return
 	}
 
+	// Validate repoURL format and extract owner
+	repoParts := strings.Split(strings.TrimSuffix(repoURL, ".git"), "github.com/")
+	if len(repoParts) != 2 {
+		c.Redirect(http.StatusFound, "/dev/submit?error=invalid_repo")
+		return
+	}
+	
+	ownerRepo := strings.Split(repoParts[1], "/")
+	if len(ownerRepo) < 2 {
+		c.Redirect(http.StatusFound, "/dev/submit?error=invalid_repo")
+		return
+	}
+	
+	owner := ownerRepo[0]
+	if owner != dc.getDevUsername(c) {
+		c.Redirect(http.StatusFound, "/dev/submit?error=not_owner")
+		return
+	}
+
 	// Check name uniqueness
 	var count int64
 	database.DB.Model(&models.Plugin{}).Where("name = ?", name).Count(&count)
@@ -244,28 +265,6 @@ func (dc *DeveloperController) UpdateProfile(c *gin.Context) {
 	dev.FullName = c.PostForm("full_name")
 	dev.Company = c.PostForm("company")
 	dev.Website = c.PostForm("website")
-	dev.Bio = c.PostForm("bio")
-
-	// Password change (optional)
-	currentPass := c.PostForm("current_password")
-	newPass := c.PostForm("new_password")
-	confirmPass := c.PostForm("confirm_password")
-
-	if currentPass != "" {
-		if !dev.CheckPassword(currentPass) {
-			c.Redirect(http.StatusFound, "/dev/profile?error=wrong_password")
-			return
-		}
-		if len(newPass) < 8 {
-			c.Redirect(http.StatusFound, "/dev/profile?error=password_short")
-			return
-		}
-		if newPass != confirmPass {
-			c.Redirect(http.StatusFound, "/dev/profile?error=password_mismatch")
-			return
-		}
-		dev.SetPassword(newPass)
-	}
 
 	if err := database.DB.Save(&dev).Error; err != nil {
 		c.Redirect(http.StatusFound, "/dev/profile?error=server")
