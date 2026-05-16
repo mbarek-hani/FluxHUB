@@ -6,8 +6,8 @@ import (
 	"github.com/mbarek-hani/FluxHUB/views/layouts"
 )
 
-templ AdminPluginReview(username string, plugin models.Plugin, scanReport models.ScanReport, pluginStatus string, createdAt string) {
-	@layouts.Admin(fmt.Sprintf("Review: %s", plugin.Name), username, "plugins") {
+templ AdminPluginReview(username string, avatarLetter string, plugin models.Plugin, scanReport models.ScanReport, pluginStatus string, createdAt string) {
+	@layouts.Admin(fmt.Sprintf("Review: %s", plugin.Name), username, avatarLetter, "plugins") {
 		<div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
 			<div>
 				<nav class="flex mb-2" aria-label="Breadcrumb">
