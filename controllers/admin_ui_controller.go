@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mbarek-hani/FluxHUB/database"
@@ -112,6 +113,52 @@ func (ctrl *AdminUIController) PluginsList(c *gin.Context) {
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	pages.AdminPluginsList(ctrl.getUsername(c), ctrl.getAdmin(c).AvatarLetter(), rows, statusFilter).Render(c.Request.Context(), c.Writer)
+}
+
+func (ctrl *AdminUIController) DevelopersList(c *gin.Context) {
+	searchQuery := c.Query("q")
+	page := 1
+	if p, err := strconv.Atoi(c.Query("page")); err == nil && p > 0 {
+		page = p
+	}
+
+	pageSize := 10
+	offset := (page - 1) * pageSize
+
+	var developers []models.User
+	var total int64
+
+	query := database.DB.Model(&models.User{}).Where("role = ?", models.RoleDeveloper)
+	if searchQuery != "" {
+		query = query.Where("username LIKE ? OR email LIKE ? OR github_id LIKE ?", "%"+searchQuery+"%", "%"+searchQuery+"%", "%"+searchQuery+"%")
+	}
+
+	query.Count(&total)
+	query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&developers)
+
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize != 0 {
+		totalPages++
+	}
+	if totalPages == 0 {
+		totalPages = 1
+	}
+
+	rows := make([]pages.AdminDeveloperRow, len(developers))
+	for i, d := range developers {
+		rows[i] = pages.AdminDeveloperRow{
+			ID:        d.ID,
+			Username:  d.Username,
+			Email:     d.Email,
+			GithubID:  d.GithubID,
+			AvatarURL: d.AvatarURL,
+			IsBlocked: d.IsBlocked,
+			JoinedAt:  d.CreatedAt.Format("Jan 02, 2006"),
+		}
+	}
+
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	pages.AdminDevelopersList(ctrl.getUsername(c), ctrl.getAdmin(c).AvatarLetter(), rows, searchQuery, page, totalPages).Render(c.Request.Context(), c.Writer)
 }
 
 func (ctrl *AdminUIController) PluginReview(c *gin.Context) {
@@ -303,4 +350,22 @@ func (ctrl *AdminUIController) APIRejectPlugin(c *gin.Context) {
 	}
 	database.DB.Model(&models.Plugin{}).Where("id = ?", id).Update("status", models.StatusRejected)
 	c.JSON(http.StatusOK, gin.H{"message": "Plugin rejected"})
+}
+
+func (ctrl *AdminUIController) APIBlockDeveloper(c *gin.Context) {
+	id := c.Param("id")
+	if err := database.DB.Model(&models.User{}).Where("id = ? AND role = ?", id, models.RoleDeveloper).Update("is_blocked", true).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to block developer"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Developer blocked"})
+}
+
+func (ctrl *AdminUIController) APIUnblockDeveloper(c *gin.Context) {
+	id := c.Param("id")
+	if err := database.DB.Model(&models.User{}).Where("id = ? AND role = ?", id, models.RoleDeveloper).Update("is_blocked", false).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unblock developer"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Developer unblocked"})
 }
