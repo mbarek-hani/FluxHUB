@@ -5,8 +5,8 @@ import (
 	"github.com/mbarek-hani/FluxHUB/views/components"
 )
 
-templ DevSubmit(username string, avatarLetter string, errorMsg string) {
-	@layouts.Developer("Submit Plugin", username, avatarLetter, "submit") {
+templ DevSubmit(username string, avatarUrl string, errorMsg string) {
+	@layouts.Developer("Submit Plugin", username, avatarUrl, "submit") {
 		<div class="mb-8">
 			<nav class="flex mb-2" aria-label="Breadcrumb">
 				<ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm">
