@@ -6,8 +6,8 @@ import (
 	"github.com/mbarek-hani/FluxHUB/models"
 )
 
-templ DevProfile(username string, avatarLetter string, dev models.User, success bool, errorMsg string) {
-	@layouts.Developer("Profile Settings", username, avatarLetter, "profile") {
+templ DevProfile(username string, avatarUrl string, dev models.User, success bool, errorMsg string) {
+	@layouts.Developer("Profile Settings", username, avatarUrl, "profile") {
 		<div class="mb-8">
 			<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
 		</div>
