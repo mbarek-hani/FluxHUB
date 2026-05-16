@@ -23,6 +23,8 @@ type User struct {
 	Email     string    `gorm:"type:varchar(255);uniqueIndex" json:"email"`
 	Password  string    `gorm:"type:varchar(255)" json:"-"` // Can be empty for GitHub users
 	GithubID  string    `gorm:"type:varchar(255);uniqueIndex" json:"github_id"`
+	AvatarURL string    `gorm:"type:varchar(512)" json:"avatar_url"`
+	IsBlocked bool      `gorm:"default:false" json:"is_blocked"`
 	FullName  string    `gorm:"type:varchar(255)" json:"full_name"`
 	Company   string    `gorm:"type:varchar(255)" json:"company"`
 	Website   string    `gorm:"type:varchar(512)" json:"website"`
