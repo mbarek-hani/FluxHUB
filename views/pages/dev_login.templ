@@ -16,13 +16,15 @@ templ DevLogin(errorMsg string) {
 				</div>
 
 				if errorMsg == "invalid" {
-					@components.Alert("Invalid username or password.", "error")
+					@components.Alert("invalid github account.", "error")
 				} else if errorMsg == "server" {
 					@components.Alert("An internal server error occurred. Please try again.", "error")
 				} else if errorMsg == "admin_only" {
 					@components.Alert("Developers must sign in using GitHub.", "error")
 				} else if errorMsg == "github_failed" {
 					@components.Alert("Failed to authenticate with GitHub. Please try again.", "error")
+				} else if errorMsg == "account_blocked" {
+					@components.Alert("Your account has been blocked by the Administrator.", "error")
 				}
 
 				<div class="mt-4">
