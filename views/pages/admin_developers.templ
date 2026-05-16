@@ -1,0 +1,172 @@
+package pages
+
+import (
+	"fmt"
+	"github.com/mbarek-hani/FluxHUB/views/layouts"
+)
+
+type AdminDeveloperRow struct {
+	ID        string
+	Username  string
+	Email     string
+	GithubID  string
+	AvatarURL string
+	IsBlocked bool
+	JoinedAt  string
+}
+
+templ AdminDevelopersList(username string, avatarLetter string, developers []AdminDeveloperRow, searchQuery string, page int, totalPages int) {
+	@layouts.Admin("Developers", username, avatarLetter, "developers") {
+		<div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+			<div>
+				<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Developers</h1>
+				<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage registered developers.</p>
+			</div>
+			<div class="flex items-center gap-4">
+				<form action="/admin/developers" method="GET" class="relative">
+					<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+						<svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+						</svg>
+					</div>
+					<input type="text" name="q" value={ searchQuery } placeholder="Search developers..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-800 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors text-gray-900 dark:text-white" />
+				</form>
+			</div>
+		</div>
+
+		<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+			<div class="overflow-x-auto">
+				<table class="w-full text-left text-sm whitespace-nowrap">
+					<thead class="bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+						<tr>
+							<th class="px-6 py-3 font-medium">Developer</th>
+							<th class="px-6 py-3 font-medium">GitHub ID</th>
+							<th class="px-6 py-3 font-medium">Status</th>
+							<th class="px-6 py-3 font-medium">Joined</th>
+							<th class="px-6 py-3 font-medium text-right">Actions</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+						if len(developers) == 0 {
+							<tr>
+								<td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+									No developers found.
+								</td>
+							</tr>
+						} else {
+							for _, d := range developers {
+								<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+									<td class="px-6 py-4">
+										<div class="flex items-center">
+											<div class="h-10 w-10 flex-shrink-0">
+												if d.AvatarURL != "" {
+													<img class="h-10 w-10 rounded-full" src={ d.AvatarURL } alt="" />
+												} else {
+													<div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-lg">
+														{ string(d.Username[0]) }
+													</div>
+												}
+											</div>
+											<div class="ml-4">
+												<div class="font-medium text-gray-900 dark:text-white">{ d.Username }</div>
+												<div class="text-gray-500 dark:text-gray-400 text-xs">{ d.Email }</div>
+											</div>
+										</div>
+									</td>
+									<td class="px-6 py-4 text-gray-600 dark:text-gray-400">
+										{ d.GithubID }
+									</td>
+									<td class="px-6 py-4">
+										if d.IsBlocked {
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">Blocked</span>
+										} else {
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Active</span>
+										}
+									</td>
+									<td class="px-6 py-4 text-gray-500 dark:text-gray-400">{ d.JoinedAt }</td>
+									<td class="px-6 py-4 text-right">
+										if d.IsBlocked {
+											<button onclick={ templ.JSFuncCall("unblockDeveloper", d.ID) } class="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+												Unblock
+											</button>
+										} else {
+											<button onclick={ templ.JSFuncCall("blockDeveloper", d.ID) } class="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
+												Block
+											</button>
+										}
+									</td>
+								</tr>
+							}
+						}
+					</tbody>
+				</table>
+			</div>
+			
+			if totalPages > 1 {
+				<div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+					<div class="flex-1 flex justify-between sm:hidden">
+						if page > 1 {
+							<a href={ templ.URL(fmt.Sprintf("/admin/developers?q=%s&page=%d", searchQuery, page-1)) } class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">Previous</a>
+						}
+						if page < totalPages {
+							<a href={ templ.URL(fmt.Sprintf("/admin/developers?q=%s&page=%d", searchQuery, page+1)) } class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">Next</a>
+						}
+					</div>
+					<div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+						<div>
+							<p class="text-sm text-gray-700 dark:text-gray-400">
+								Showing page <span class="font-medium">{ fmt.Sprint(page) }</span> of <span class="font-medium">{ fmt.Sprint(totalPages) }</span>
+							</p>
+						</div>
+						<div>
+							<nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+								if page > 1 {
+									<a href={ templ.URL(fmt.Sprintf("/admin/developers?q=%s&page=%d", searchQuery, page-1)) } class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+										<span class="sr-only">Previous</span>
+										<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+											<path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+										</svg>
+									</a>
+								}
+								if page < totalPages {
+									<a href={ templ.URL(fmt.Sprintf("/admin/developers?q=%s&page=%d", searchQuery, page+1)) } class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+										<span class="sr-only">Next</span>
+										<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+											<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+										</svg>
+									</a>
+								}
+							</nav>
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+
+		<script>
+			async function blockDeveloper(id) {
+				if (!confirm('Are you sure you want to block this developer? They will not be able to login or submit plugins.')) return;
+				try {
+					const res = await fetch(`/admin/api/developers/${id}/block`, { method: 'POST' });
+					if (res.ok) window.location.reload();
+					else alert('Failed to block developer');
+				} catch (e) {
+					console.error(e);
+					alert('An error occurred');
+				}
+			}
+
+			async function unblockDeveloper(id) {
+				if (!confirm('Are you sure you want to unblock this developer?')) return;
+				try {
+					const res = await fetch(`/admin/api/developers/${id}/unblock`, { method: 'POST' });
+					if (res.ok) window.location.reload();
+					else alert('Failed to unblock developer');
+				} catch (e) {
+					console.error(e);
+					alert('An error occurred');
+				}
+			}
+		</script>
+	}
+}
