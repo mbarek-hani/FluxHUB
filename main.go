@@ -14,38 +14,14 @@ import (
 	"github.com/mbarek-hani/FluxHUB/services"
 )
 
-type Config struct {
-	Port               string
-	StoragePath        string
-	ZipsPath           string
-	PrivateKeyPath     string
-	GinMode            string
-	GithubClientID     string
-	GithubClientSecret string
-	GithubRedirectURL  string
-}
-
-func loadConfig() Config {
-	return Config{
-		Port:               getEnv("PORT", "8080"),
-		StoragePath:        getEnv("STORAGE_PATH", "./storage/clones"),
-		ZipsPath:           getEnv("ZIPS_PATH", "./storage/zips"),
-		PrivateKeyPath:     getEnv("PRIVATE_KEY_PATH", "./keys/flux_hub_private.pem"),
-		GinMode:            getEnv("GIN_MODE", "debug"),
-		GithubClientID:     getEnv("GITHUB_CLIENT_ID", ""),
-		GithubClientSecret: getEnv("GITHUB_CLIENT_SECRET", ""),
-		GithubRedirectURL:  getEnv("GITHUB_REDIRECT_URL", "http://localhost:8080/auth/github/callback"),
-	}
-}
-
 func main() {
 	if err := godotenv.Load(); err != nil {
 		slog.Info(fmt.Sprint("No .env file found, relying on system environment variables"))
 	}
 
-	cfg := loadConfig()
+	cfg := LoadConfig()
 
-	if err := ensureKeyExists(cfg.PrivateKeyPath); err != nil {
+	if err := EnsureKeyExists(cfg.PrivateKeyPath); err != nil {
 		slog.Error(fmt.Sprintf("Key error: %v", err))
 		os.Exit(1)
 	}
@@ -88,26 +64,7 @@ func main() {
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	slog.Info(fmt.Sprintf("FluxHUB on http://localhost%s", addr))
-	slog.Info(fmt.Sprintf("Unified Login: http://localhost%s/login", addr))
-	router.Run(addr)
-}
-
-func ensureKeyExists(privateKeyPath string) error {
-	if _, err := os.Stat(privateKeyPath); os.IsNotExist(err) {
-		slog.Info(fmt.Sprint("Generating RSA 4096 key pair..."))
-		os.MkdirAll("./keys", 0700)
-		publicKeyPath := "./keys/flux_hub_public.pem"
-		if err := services.GenerateKeyPair(privateKeyPath, publicKeyPath); err != nil {
-			return err
-		}
-		slog.Info(fmt.Sprintf("Keys generated: %s, %s", privateKeyPath, publicKeyPath))
+	if err := router.Run(addr); err != nil {
+		slog.Error(fmt.Sprintf("FluxHUB failed to start on http://localhost%s", addr))
 	}
-	return nil
-}
-
-func getEnv(key, defaultValue string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return defaultValue
 }
