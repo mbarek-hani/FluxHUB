@@ -133,6 +133,12 @@ func getSubmitErrorMessage(code string) string {
 		return "Name and repository URL are required."
 	case "name_taken":
 		return "A plugin with this name already exists."
+	case "invalid_repo":
+		return "Invalid GitHub repository URL."
+	case "repo_not_found":
+		return "Repository not found or is private."
+	case "not_owner":
+		return "You can only submit repositories that you own on GitHub."
 	case "server":
 		return "Server error. Please try again."
 	default:
