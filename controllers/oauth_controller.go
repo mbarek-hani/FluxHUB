@@ -65,12 +65,13 @@ func (oc *OAuthController) GithubCallback(c *gin.Context) {
 	defer resp.Body.Close()
 
 	var ghUser struct {
-		ID    int    `json:"id"`
-		Login string `json:"login"`
-		Name  string `json:"name"`
-		Email string `json:"email"`
-		Bio   string `json:"bio"`
-		Blog  string `json:"blog"`
+		ID        int    `json:"id"`
+		Login     string `json:"login"`
+		Name      string `json:"name"`
+		Email     string `json:"email"`
+		Bio       string `json:"bio"`
+		Blog      string `json:"blog"`
+		AvatarURL string `json:"avatar_url"`
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&ghUser); err != nil {
@@ -124,20 +125,34 @@ func (oc *OAuthController) GithubCallback(c *gin.Context) {
 			}
 
 			user = models.User{
-				Username: username,
-				Email:    ghUser.Email,
-				GithubID: githubIDStr,
-				FullName: ghUser.Name,
-				Bio:      ghUser.Bio,
-				Website:  ghUser.Blog,
-				Role:     models.RoleDeveloper, // Ensure role is developer
-				Verified: true,                 // GitHub users can be considered verified
+				Username:  username,
+				Email:     ghUser.Email,
+				GithubID:  githubIDStr,
+				FullName:  ghUser.Name,
+				AvatarURL: ghUser.AvatarURL,
+				Bio:       ghUser.Bio,
+				Website:   ghUser.Blog,
+				Role:      models.RoleDeveloper, // Ensure role is developer
+				Verified:  true,                 // GitHub users can be considered verified
 			}
 			if err := database.DB.Create(&user).Error; err != nil {
 				c.Redirect(http.StatusFound, "/login?error=server")
 				return
 			}
+		} else {
+			// Update AvatarURL just in case it changed
+			user.AvatarURL = ghUser.AvatarURL
+			database.DB.Save(&user)
 		}
+	} else {
+		// Found by GitHub ID, update AvatarURL
+		user.AvatarURL = ghUser.AvatarURL
+		database.DB.Save(&user)
+	}
+
+	if user.IsBlocked {
+		c.Redirect(http.StatusFound, "/login?error=account_blocked")
+		return
 	}
 
 	// Log the user in
