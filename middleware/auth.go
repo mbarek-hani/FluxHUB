@@ -2,8 +2,6 @@ package middleware
 
 import (
 	"net/http"
-	"os"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mbarek-hani/FluxHUB/models"
@@ -11,28 +9,8 @@ import (
 	"github.com/mbarek-hani/FluxHUB/utils"
 )
 
-func AdminAuth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
-			return
-		}
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid auth format"})
-			return
-		}
-		if parts[1] != os.Getenv("ADMIN_API_TOKEN") {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Invalid token"})
-			return
-		}
-		c.Next()
-	}
-}
-
-// SessionAuth protects admin UI routes
-func SessionAuth(sessions *services.SessionStore) gin.HandlerFunc {
+// AdminAuth protects admin UI routes
+func AdminAuth(sessions *services.SessionStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cookie, err := c.Cookie("flux_session")
 		if err != nil {
