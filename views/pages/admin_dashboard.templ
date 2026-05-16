@@ -21,13 +21,12 @@ type AdminPluginRow struct {
 	CreatedAt      string
 }
 
-templ AdminDashboard(username string, stats AdminDashboardStats, recentPlugins []AdminPluginRow) {
-	@layouts.Admin("Dashboard", username, "dashboard") {
+templ AdminDashboard(username string, avatarLetter string, stats AdminDashboardStats, recentPlugins []AdminPluginRow) {
+	@layouts.Admin("Dashboard", username, avatarLetter, "dashboard") {
 		<div class="mb-8">
 			<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Overview of FluxHUB marketplace activity.</p>
 		</div>
-
 		<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
 			<!-- Stats Cards -->
 			<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
@@ -47,7 +46,6 @@ templ AdminDashboard(username string, stats AdminDashboardStats, recentPlugins [
 				<div class="text-3xl font-bold text-red-600 dark:text-red-400">{ fmt.Sprint(stats.Rejected) }</div>
 			</div>
 		</div>
-
 		<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
 			<div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700">
 				<h2 class="text-lg font-medium text-gray-900 dark:text-white">Recent Submissions</h2>
