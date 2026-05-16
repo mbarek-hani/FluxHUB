@@ -1,8 +1,8 @@
 package models
 
 import (
-	"time"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -57,12 +57,16 @@ func (u *User) CheckPassword(plain string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plain)) == nil
 }
 
-func (u *User) AvatarLetter() string {
-	if len(u.FullName) > 0 {
-		return strings.ToUpper(string(u.FullName[0]))
+func (u *User) AdminAvatarLetter() string {
+	if u.Role != RoleAdmin {
+		return ""
 	}
-	if len(u.Username) > 0 {
-		return strings.ToUpper(string(u.Username[0]))
+	return strings.ToUpper(string(u.Username[0]))
+}
+
+func (u *User) DevAvatarURL() string {
+	if u.Role != RoleDeveloper {
+		return ""
 	}
-	return "?"
+	return u.AvatarURL
 }
