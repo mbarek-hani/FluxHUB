@@ -59,16 +59,18 @@ func (dc *DeveloperController) getDevFullName(c *gin.Context) string {
 	return ""
 }
 
+func (dc *DeveloperController) getDev(c *gin.Context) *models.User {
+	var dev models.User
+	database.DB.First(&dev, "id = ?", dc.getDevID(c))
+	return &dev
+}
+
 // ---- Pages ----
 
 func (dc *DeveloperController) Dashboard(c *gin.Context) {
 	devID := dc.getDevID(c)
 
-	var dev models.User
-	if err := database.DB.First(&dev, "id = ?", devID).Error; err != nil {
-		c.Redirect(http.StatusFound, "/login")
-		return
-	}
+	dev := dc.getDev(c)
 
 	// Load plugins with versions
 	var plugins []models.Plugin
@@ -131,12 +133,12 @@ func (dc *DeveloperController) Dashboard(c *gin.Context) {
 	}
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	pages.DevDashboard(dev.Username, dev.FullName, dev.AvatarLetter(), stats, rows).Render(c.Request.Context(), c.Writer)
+	pages.DevDashboard(dev.Username, dev.FullName, dev.DevAvatarURL(), stats, rows).Render(c.Request.Context(), c.Writer)
 }
 
 func (dc *DeveloperController) ShowSubmit(c *gin.Context) {
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	pages.DevSubmit(dc.getDevUsername(c), string([]rune(dc.getDevFullName(c))[:1]), c.Query("error")).Render(c.Request.Context(), c.Writer)
+	pages.DevSubmit(dc.getDevUsername(c), dc.getDev(c).DevAvatarURL(), c.Query("error")).Render(c.Request.Context(), c.Writer)
 }
 
 func (dc *DeveloperController) Submit(c *gin.Context) {
@@ -228,7 +230,7 @@ func (dc *DeveloperController) PluginDetail(c *gin.Context) {
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	pages.DevPluginDetail(
 		dc.getDevUsername(c),
-		string([]rune(dc.getDevFullName(c) + "?")[:1]),
+		dc.getDev(c).DevAvatarURL(),
 		plugin,
 		string(plugin.Status),
 		plugin.CreatedAt.Format("January 02, 2006 15:04 UTC"),
@@ -240,27 +242,15 @@ func (dc *DeveloperController) PluginDetail(c *gin.Context) {
 }
 
 func (dc *DeveloperController) ShowProfile(c *gin.Context) {
-	devID := dc.getDevID(c)
-
-	var dev models.User
-	if err := database.DB.First(&dev, "id = ?", devID).Error; err != nil {
-		c.Redirect(http.StatusFound, "/login")
-		return
-	}
+	dev := dc.getDev(c)
 
 	success := c.Query("success") == "true"
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	pages.DevProfile(dev.Username, dev.AvatarLetter(), dev, success, c.Query("error")).Render(c.Request.Context(), c.Writer)
+	pages.DevProfile(dev.Username, dev.DevAvatarURL(), *dev, success, c.Query("error")).Render(c.Request.Context(), c.Writer)
 }
 
 func (dc *DeveloperController) UpdateProfile(c *gin.Context) {
-	devID := dc.getDevID(c)
-
-	var dev models.User
-	if err := database.DB.First(&dev, "id = ?", devID).Error; err != nil {
-		c.Redirect(http.StatusFound, "/login")
-		return
-	}
+	dev := dc.getDev(c)
 
 	dev.FullName = c.PostForm("full_name")
 	dev.Company = c.PostForm("company")
