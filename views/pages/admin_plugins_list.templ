@@ -16,8 +16,8 @@ type AdminPluginListRow struct {
 	CreatedAt      string
 }
 
-templ AdminPluginsList(username string, plugins []AdminPluginListRow, filter string) {
-	@layouts.Admin("Plugins", username, "plugins") {
+templ AdminPluginsList(username string, avatarLetter string, plugins []AdminPluginListRow, filter string) {
+	@layouts.Admin("Plugins", username, avatarLetter, "plugins") {
 		<div class="mb-8">
 			<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Plugins</h1>
 		</div>
