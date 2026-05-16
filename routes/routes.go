@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/mbarek-hani/FluxHUB/controllers"
-	"github.com/mbarek-hani/FluxHUB/middleware"
 	"github.com/mbarek-hani/FluxHUB/services"
 )
 
@@ -19,90 +18,23 @@ type RouterConfig struct {
 }
 
 func SetupRoutes(router *gin.Engine, cfg RouterConfig) {
-	// Security headers
-	router.Use(func(c *gin.Context) {
-		c.Header("X-Content-Type-Options", "nosniff")
-		c.Header("X-Frame-Options", "DENY")
-		c.Header("X-XSS-Protection", "1; mode=block")
-		c.Next()
-	})
+	addSecurityHeaders(router)
 
 	router.Static("/static", "./static")
 
-	// ---- Public API v1 ----
-	v1 := router.Group("/v1")
-	{
-		plugins := v1.Group("/plugins")
-		{
-			plugins.POST("/submit", cfg.PluginCtrl.Submit)
-			plugins.GET("", cfg.PluginCtrl.ListApproved)
-			plugins.GET("/download/:id/:version", cfg.DownloadCtrl.Download)
-			plugins.GET("/:id/versions", cfg.DownloadCtrl.GetVersionInfo)
-			plugins.GET("/:id/scan", cfg.PluginCtrl.GetScanResult)
-		}
-		v1.GET("/public-key", cfg.DownloadCtrl.GetPublicKey)
-	}
+	setupMarketPlaceRoutes(router, cfg)
 
-	// ---- Unified Auth ----
-	router.GET("/login", cfg.AuthCtrl.ShowLogin)
-	router.POST("/login", cfg.AuthCtrl.Login)
-	router.POST("/logout", cfg.AuthCtrl.Logout)
+	setupAuthRoutes(router, cfg)
 
-	// ---- OAuth ----
-	router.GET("/auth/github", cfg.OAuthCtrl.GithubLogin)
-	router.GET("/auth/github/callback", cfg.OAuthCtrl.GithubCallback)
+	setupAdminRoutes(router, cfg)
 
-	// ---- Admin UI (session-based) ----
-	admin := router.Group("/admin")
-	{
+	setupDeveloperRoutes(router, cfg)
 
-		// Protected UI routes
-		protected := admin.Group("")
-		protected.Use(middleware.SessionAuth(cfg.SessionStore))
-		{
-			protected.GET("/dashboard", cfg.AdminUICtrl.Dashboard)
-			protected.GET("/plugins", cfg.AdminUICtrl.PluginsList)
-			protected.GET("/plugins/:id/review", cfg.AdminUICtrl.PluginReview)
-			protected.GET("/plugins/:id/browse", cfg.AdminUICtrl.PluginBrowse)
-			protected.GET("/plugins/:id/diff", cfg.AdminUICtrl.PluginDiff)
-
-			// AJAX API for UI
-			api := protected.Group("/api")
-			{
-				api.GET("/plugins/:id/tree", cfg.AdminUICtrl.APIGetFileTree)
-				api.GET("/plugins/:id/file", cfg.AdminUICtrl.APIGetFileContent)
-				api.GET("/plugins/:id/diff", cfg.AdminUICtrl.APIGetDiff)
-				api.POST("/plugins/:id/approve", cfg.AdminUICtrl.APIApprovePlugin)
-				api.POST("/plugins/:id/reject", cfg.AdminUICtrl.APIRejectPlugin)
-			}
-		}
-	}
-
-	// Developer Portal
-	dev := router.Group("/dev")
-	{
-		protected := dev.Group("")
-		protected.Use(middleware.DeveloperAuth(cfg.SessionStore))
-		{
-			protected.GET("/dashboard", cfg.DevCtrl.Dashboard)
-			protected.GET("/submit", cfg.DevCtrl.ShowSubmit)
-			protected.POST("/submit", cfg.DevCtrl.Submit)
-			protected.GET("/plugins/:id", cfg.DevCtrl.PluginDetail)
-			protected.GET("/profile", cfg.DevCtrl.ShowProfile)
-			protected.POST("/profile", cfg.DevCtrl.UpdateProfile)
-
-			// AJAX
-			protected.GET("/api/plugins/:id/status", cfg.DevCtrl.APIGetPluginStatus)
-		}
-	}
-
-	// Root redirect
 	router.GET("/", func(c *gin.Context) {
 		c.Redirect(302, "/login")
 	})
 
-	// Health
 	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "healthy", "service": "flux-marketplace"})
+		c.JSON(200, gin.H{"status": "healthy", "service": "fluxHUB"})
 	})
 }
