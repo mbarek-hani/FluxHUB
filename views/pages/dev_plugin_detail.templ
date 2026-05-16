@@ -13,8 +13,8 @@ type DevPluginDetailVersion struct {
 	CreatedAt  string
 }
 
-templ DevPluginDetail(username string, avatarLetter string, plugin models.Plugin, pluginStatus string, createdAt string, updatedAt string, versions []DevPluginDetailVersion, scanReport models.ScanReport, downloadBase string) {
-	@layouts.Developer(plugin.Name, username, avatarLetter, "dashboard") {
+templ DevPluginDetail(username string, avatarUrl string, plugin models.Plugin, pluginStatus string, createdAt string, updatedAt string, versions []DevPluginDetailVersion, scanReport models.ScanReport, downloadBase string) {
+	@layouts.Developer(plugin.Name, username, avatarUrl, "dashboard") {
 		<div class="mb-8">
 			<nav class="flex mb-2" aria-label="Breadcrumb">
 				<ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm">
