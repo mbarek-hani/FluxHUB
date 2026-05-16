@@ -33,8 +33,8 @@ type DevPluginRow struct {
 	HasCritical    bool
 }
 
-templ DevDashboard(username string, fullName string, avatarLetter string, stats DevDashboardStats, plugins []DevPluginRow) {
-	@layouts.Developer("My Plugins", username, avatarLetter, "dashboard") {
+templ DevDashboard(username string, fullName string, avatarUrl string, stats DevDashboardStats, plugins []DevPluginRow) {
+	@layouts.Developer("My Plugins", username, avatarUrl, "dashboard") {
 		<div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
 			<div>
 				<h1 class="text-2xl font-bold text-gray-900 dark:text-white">My Plugins</h1>
