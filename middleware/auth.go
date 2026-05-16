@@ -68,6 +68,14 @@ func DeveloperAuth(sessions *services.SessionStore) gin.HandlerFunc {
 			return
 		}
 
+		if user.IsBlocked {
+			sessions.Destroy(decryptedCookie)
+			c.SetCookie("flux_session", "", -1, "/", "", false, true)
+			c.Redirect(http.StatusFound, "/login?error=account_blocked")
+			c.Abort()
+			return
+		}
+
 		c.Set("user_id", user.ID)
 		c.Set("user_username", user.Username)
 		c.Set("user_role", string(user.Role))
