@@ -339,19 +339,3 @@ func (dc *DeveloperController) APIGetPluginStatus(c *gin.Context) {
 	})
 }
 
-// Needed for dev_submit page — pre-format avatar letter safely
-func safeFirst(s, fallback string) string {
-	r := []rune(s)
-	if len(r) > 0 {
-		return string(r[0])
-	}
-	return fallback
-}
-
-// GetPublicKeyForDev serves the public key
-func (dc *DeveloperController) GetPublicKey(c *gin.Context) {
-	c.File("./keys/nexus_public.pem")
-}
-
-// Re-export template.JS for use in templates
-var _ = template.JS("")
