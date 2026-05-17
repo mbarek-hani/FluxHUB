@@ -7,14 +7,13 @@ import (
 )
 
 type RouterConfig struct {
-	PluginCtrl   *controllers.PluginController
-	AdminAPICtrl *controllers.AdminController
-	DownloadCtrl *controllers.DownloadController
-	AuthCtrl     *controllers.AuthController
-	AdminUICtrl  *controllers.AdminUIController
-	DevCtrl      *controllers.DeveloperController
-	OAuthCtrl    *controllers.OAuthController
-	SessionStore *services.SessionStore
+	AdminAPICtrl    *controllers.AdminController
+	AuthCtrl        *controllers.AuthController
+	AdminUICtrl     *controllers.AdminUIController
+	DevCtrl         *controllers.DeveloperController
+	OAuthCtrl       *controllers.OAuthController
+	MarketplaceCtrl *controllers.MarketplaceController
+	SessionStore    *services.SessionStore
 }
 
 func SetupRoutes(router *gin.Engine, cfg RouterConfig) {
