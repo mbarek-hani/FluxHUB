@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"strings"
@@ -277,6 +279,55 @@ func (dc *DeveloperController) processPlugin(pluginID, repoURL string) {
 		currentVersion = cloneResult.Tags[0]
 	}
 
+	// Try parsing manifest.json at root of cloned repository
+	manifestPath := filepath.Join(cloneResult.LocalPath, "manifest.json")
+	var manifestData struct {
+		Identifiant string `json:"identifiant"`
+		Nom         string `json:"nom"`
+		Auteur      string `json:"auteur"`
+		Author      string `json:"author"`
+		Description string `json:"description"`
+		Licence     string `json:"licence"`
+		License     string `json:"license"`
+	}
+
+	manifestFields := make(map[string]interface{})
+	if manifestBytes, err := os.ReadFile(manifestPath); err == nil {
+		if err := json.Unmarshal(manifestBytes, &manifestData); err == nil {
+			name := manifestData.Identifiant
+			if name == "" {
+				name = manifestData.Nom
+			}
+			if name != "" {
+				manifestFields["name"] = name
+			}
+
+			author := manifestData.Auteur
+			if author == "" {
+				author = manifestData.Author
+			}
+			if author != "" {
+				manifestFields["author"] = author
+			}
+
+			if manifestData.Description != "" {
+				manifestFields["description"] = manifestData.Description
+			}
+
+			licence := manifestData.Licence
+			if licence == "" {
+				licence = manifestData.License
+			}
+			if licence != "" {
+				manifestFields["licence"] = licence
+			}
+		} else {
+			slog.Warn(fmt.Sprintf("[Dev] Failed to unmarshal manifest.json for plugin %s: %v", pluginID, err))
+		}
+	} else {
+		slog.Warn(fmt.Sprintf("[Dev] Failed to read manifest.json for plugin %s: %v", pluginID, err))
+	}
+
 	scanReport, err := dc.scanner.ScanDirectory(cloneResult.LocalPath)
 	if err != nil {
 		slog.Info(fmt.Sprintf("[Dev] Scan failed for %s: %v", pluginID, err))
@@ -288,12 +339,17 @@ func (dc *DeveloperController) processPlugin(pluginID, repoURL string) {
 		scanJSON = string(b)
 	}
 
+	updates := map[string]interface{}{
+		"current_version": currentVersion,
+		"scan_result":     scanJSON,
+	}
+	for k, v := range manifestFields {
+		updates[k] = v
+	}
+
 	database.DB.Model(&models.Plugin{}).
 		Where("id = ?", pluginID).
-		Updates(map[string]interface{}{
-			"current_version": currentVersion,
-			"scan_result":     scanJSON,
-		})
+		Updates(updates)
 
 	for _, tag := range cloneResult.Tags {
 		changelog, _ := dc.gitManager.ExtractChangelog(pluginID, tag)

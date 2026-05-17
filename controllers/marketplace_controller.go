@@ -55,6 +55,7 @@ type pluginSummary struct {
 	Name           string `json:"name"`
 	Author         string `json:"author"`
 	Description    string `json:"description"`
+	Licence        string `json:"licence"`
 	RepoURL        string `json:"repo_url"`
 	CurrentVersion string `json:"current_version"`
 	TotalDownloads int64  `json:"total_downloads"`
@@ -72,6 +73,7 @@ func toSummary(p models.Plugin) pluginSummary {
 		Name:           p.Name,
 		Author:         p.Author,
 		Description:    p.Description,
+		Licence:        p.Licence,
 		RepoURL:        p.RepoURL,
 		CurrentVersion: p.CurrentVersion,
 		TotalDownloads: downloadCount(p.ID),
