@@ -52,13 +52,6 @@ func (dc *DeveloperController) getDevUsername(c *gin.Context) string {
 	return ""
 }
 
-func (dc *DeveloperController) getDevFullName(c *gin.Context) string {
-	if v, ok := c.Get("dev_fullname"); ok {
-		return fmt.Sprintf("%v", v)
-	}
-	return ""
-}
-
 func (dc *DeveloperController) getDev(c *gin.Context) *models.User {
 	var dev models.User
 	database.DB.First(&dev, "id = ?", dc.getDevID(c))
