@@ -27,6 +27,7 @@ func main() {
 			&models.Plugin{},
 			&models.Version{},
 			&models.Session{},
+			&models.PluginDownload{},
 		)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Failed to migrate tables: %v", err))
@@ -44,6 +45,7 @@ func main() {
 		&models.Plugin{},
 		&models.Version{},
 		&models.Session{},
+		&models.PluginDownload{},
 	)
 
 	if err != nil {
@@ -59,6 +61,7 @@ func main() {
 		&models.Plugin{},
 		&models.Version{},
 		&models.Session{},
+		&models.PluginDownload{},
 	)
 
 	if err != nil {
