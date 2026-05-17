@@ -1,14 +1,23 @@
 package routes
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 func setupMarketPlaceRoutes(router *gin.Engine, cfg RouterConfig) {
 	v1 := router.Group("/v1")
-	v1.GET("/public-key", cfg.DownloadCtrl.GetPublicKey)
 
-	plugins := v1.Group("/plugins")
-	plugins.GET("", cfg.PluginCtrl.ListApproved)
-	plugins.GET("/download/:id/:version", cfg.DownloadCtrl.Download)
-	plugins.GET("/:id/versions", cfg.DownloadCtrl.GetVersionInfo)
-	plugins.GET("/:id/scan", cfg.PluginCtrl.GetScanResult)
+	//Integrity / crypto
+	v1.GET("/public-key", cfg.MarketplaceCtrl.GetPublicKey)
+
+	//Marketplace API (consumed by analytics app clients (Flux))
+	mp := v1.Group("/marketplace")
+	{
+		plugins := mp.Group("/plugins")
+
+		plugins.GET("", cfg.MarketplaceCtrl.ListPlugins)
+		plugins.GET("/:id", cfg.MarketplaceCtrl.GetPlugin)
+		plugins.GET("/:id/download", cfg.MarketplaceCtrl.DownloadLatest)
+		plugins.GET("/:id/updates", cfg.MarketplaceCtrl.CheckUpdate)
+	}
 }
