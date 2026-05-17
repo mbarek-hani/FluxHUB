@@ -25,9 +25,6 @@ build-errors.log
 # Vite compiled output
 static/dist/
 
-# Templ generated Go files
-views/**/*_templ.go
-
 # IDE / OS
 .idea/
 .vscode/
