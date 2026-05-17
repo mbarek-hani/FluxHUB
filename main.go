@@ -39,9 +39,8 @@ func main() {
 	packager := services.NewPackager(cfg.ZipsPath)
 	sessionStore := services.NewSessionStore(30 * 24 * time.Hour)
 
-	pluginCtrl := controllers.NewPluginController(gitManager, scanner)
 	adminAPICtrl := controllers.NewAdminController(gitManager, signer, packager, scanner)
-	downloadCtrl := controllers.NewDownloadController(packager, signer)
+	marketplaceCtrl := controllers.NewMarketplaceController(packager, signer)
 	authCtrl := controllers.NewAuthController(sessionStore)
 	adminUICtrl := controllers.NewAdminUIController(gitManager, signer, packager, scanner)
 	devCtrl := controllers.NewDeveloperController(sessionStore, gitManager, scanner)
@@ -52,14 +51,13 @@ func main() {
 	router.Use(gin.Recovery())
 
 	routes.SetupRoutes(router, routes.RouterConfig{
-		PluginCtrl:   pluginCtrl,
-		AdminAPICtrl: adminAPICtrl,
-		DownloadCtrl: downloadCtrl,
-		AuthCtrl:     authCtrl,
-		AdminUICtrl:  adminUICtrl,
-		DevCtrl:      devCtrl,
-		OAuthCtrl:    oauthCtrl,
-		SessionStore: sessionStore,
+		AdminAPICtrl:    adminAPICtrl,
+		AuthCtrl:        authCtrl,
+		AdminUICtrl:     adminUICtrl,
+		DevCtrl:         devCtrl,
+		OAuthCtrl:       oauthCtrl,
+		MarketplaceCtrl: marketplaceCtrl,
+		SessionStore:    sessionStore,
 	})
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
