@@ -7,7 +7,6 @@ func setupMarketPlaceRoutes(router *gin.Engine, cfg RouterConfig) {
 	v1.GET("/public-key", cfg.DownloadCtrl.GetPublicKey)
 
 	plugins := v1.Group("/plugins")
-	plugins.POST("/submit", cfg.PluginCtrl.Submit)
 	plugins.GET("", cfg.PluginCtrl.ListApproved)
 	plugins.GET("/download/:id/:version", cfg.DownloadCtrl.Download)
 	plugins.GET("/:id/versions", cfg.DownloadCtrl.GetVersionInfo)
