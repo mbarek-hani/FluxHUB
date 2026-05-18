@@ -10,7 +10,7 @@ import (
 // Version représente une version taguée d'un plugin
 type Version struct {
 	ID         string    `gorm:"type:varchar(36);primaryKey" json:"id"`
-	PluginID   string    `gorm:"type:varchar(36);not null;index" json:"plugin_id"`
+	PluginID   string    `gorm:"type:varchar(255);not null;index" json:"plugin_id"`
 	Tag        string    `gorm:"type:varchar(100);not null" json:"tag"`
 	Signature  string    `gorm:"type:text" json:"signature"` // Signature RSA base64
 	Changelog  string    `gorm:"type:text" json:"changelog"`

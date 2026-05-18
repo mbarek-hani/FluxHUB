@@ -60,15 +60,7 @@ func DevSubmit(username string, avatarUrl string, errorMsg string) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.Input("name", "name", "Plugin Identifier *", "text", true, "my-awesome-plugin", "Unique name in kebab-case (e.g. my-analytics)", "", false).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
 			templ_7745c5c3_Err = components.Input("repo_url", "repo_url", "Git Repository URL *", "url", true, "https://github.com/yourname/your-plugin", "Must be a publicly accessible Git repository", "", false).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = components.TextArea("description", "description", "Description", false, "This plugin adds... and provides...", "4", "Briefly describe what your plugin does", "").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -89,15 +81,23 @@ func DevSubmit(username string, avatarUrl string, errorMsg string) templ.Compone
 func getSubmitErrorMessage(code string) string {
 	switch code {
 	case "required":
-		return "Name and repository URL are required."
-	case "name_taken":
-		return "A plugin with this name already exists."
+		return "Repository URL is required."
 	case "invalid_repo":
 		return "Invalid GitHub repository URL."
 	case "repo_not_found":
 		return "Repository not found or is private."
 	case "not_owner":
 		return "You can only submit repositories that you own on GitHub."
+	case "clone_failed":
+		return "Failed to clone the Git repository. Please ensure the repository is public and accessible."
+	case "missing_manifest":
+		return "The repository does not contain a valid manifest.json file at the root."
+	case "invalid_manifest":
+		return "The manifest.json file is malformed or invalid."
+	case "missing_identifiant":
+		return "The manifest.json file is missing the required 'identifiant' field."
+	case "already_exists_different_user":
+		return "A plugin with this identifiant already exists and belongs to a different developer."
 	case "server":
 		return "Server error. Please try again."
 	default:

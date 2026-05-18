@@ -16,7 +16,7 @@ const (
 )
 
 type Plugin struct {
-	ID             string         `gorm:"type:varchar(36);primaryKey" json:"id"`
+	ID             string         `gorm:"type:varchar(255);primaryKey" json:"id"`
 	Name           string         `gorm:"type:varchar(255);not null;uniqueIndex" json:"name"`
 	RepoURL        string         `gorm:"type:varchar(512);not null" json:"repo_url"`
 	DeveloperID    string         `gorm:"type:varchar(36);not null;index" json:"developer_id"`
