@@ -178,7 +178,11 @@ func (mc *MarketplaceController) DownloadLatest(c *gin.Context) {
 		return
 	}
 
-	zipPath := mc.packager.GetZipPath(pluginID, plugin.CurrentVersion)
+	zipPath, err := mc.packager.GetZipPathSafe(pluginID, plugin.CurrentVersion)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid plugin identifier or version"})
+		return
+	}
 	if _, err := os.Stat(zipPath); os.IsNotExist(err) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Plugin ZIP not found — please contact the administrator"})
 		return
