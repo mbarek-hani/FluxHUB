@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -134,10 +135,34 @@ func (p *Packager) PackagePlugin(sourcePath, pluginID, version string) (string, 
 	return zipFilePath, nil
 }
 
+var safeZipComponentPattern = regexp.MustCompile(`^[A-Za-z0-9._-]+$`)
+
+func isSafePathComponent(v string) bool {
+	if v == "" {
+		return false
+	}
+	if strings.Contains(v, "/") || strings.Contains(v, "\\") || strings.Contains(v, "..") {
+		return false
+	}
+	return safeZipComponentPattern.MatchString(v)
+}
+
+// GetZipPathSafe retourne le chemin d'un ZIP existant après validation des composants.
+func (p *Packager) GetZipPathSafe(pluginID, version string) (string, error) {
+	if !isSafePathComponent(pluginID) || !isSafePathComponent(version) {
+		return "", fmt.Errorf("invalid pluginID or version")
+	}
+	zipFileName := fmt.Sprintf("%s-%s.zip", pluginID, version)
+	return filepath.Join(p.OutputPath, zipFileName), nil
+}
+
 // GetZipPath retourne le chemin d'un ZIP existant
 func (p *Packager) GetZipPath(pluginID, version string) string {
-	zipFileName := fmt.Sprintf("%s-%s.zip", pluginID, version)
-	return filepath.Join(p.OutputPath, zipFileName)
+	zipPath, err := p.GetZipPathSafe(pluginID, version)
+	if err != nil {
+		return ""
+	}
+	return zipPath
 }
 
 // ZipExists vérifie si un ZIP existe déjà pour ce plugin/version
