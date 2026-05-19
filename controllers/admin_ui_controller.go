@@ -57,7 +57,7 @@ func (ctrl *AdminUIController) getAdmin(c *gin.Context) *models.User {
 func (ctrl *AdminUIController) Dashboard(c *gin.Context) {
 	var totalPlugins, pending, approved, rejected int64
 	database.DB.Model(&models.Plugin{}).Count(&totalPlugins)
-	database.DB.Model(&models.Plugin{}).Where("status = ?", "pending").Count(&pending)
+	database.DB.Model(&models.Plugin{}).Where("status = ? OR id IN (SELECT plugin_id FROM versions WHERE signature = ?)", "pending", "").Count(&pending)
 	database.DB.Model(&models.Plugin{}).Where("status = ?", "approved").Count(&approved)
 	database.DB.Model(&models.Plugin{}).Where("status = ?", "rejected").Count(&rejected)
 
@@ -93,7 +93,11 @@ func (ctrl *AdminUIController) PluginsList(c *gin.Context) {
 	var plugins []models.Plugin
 	query := database.DB.Preload("Versions").Order("created_at DESC")
 	if statusFilter != "all" {
-		query = query.Where("status = ?", statusFilter)
+		if statusFilter == "pending" {
+			query = query.Where("status = ? OR id IN (SELECT plugin_id FROM versions WHERE signature = ?)", "pending", "")
+		} else {
+			query = query.Where("status = ?", statusFilter)
+		}
 	}
 	query.Find(&plugins)
 

@@ -14,6 +14,15 @@ import (
 	"github.com/mbarek-hani/FluxHUB/views/layouts"
 )
 
+func hasUnsignedVersions(versions []models.Version) bool {
+	for _, v := range versions {
+		if v.Signature == "" {
+			return true
+		}
+	}
+	return false
+}
+
 func AdminPluginReview(username string, avatarLetter string, plugin models.Plugin, scanReport models.ScanReport, pluginStatus string, createdAt string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -54,7 +63,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(plugin.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 21, Col: 105}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 30, Col: 105}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -67,7 +76,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(plugin.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 33, Col: 79}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 42, Col: 79}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -100,7 +109,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var5 templ.SafeURL
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(fmt.Sprintf("/admin/plugins/%s/browse", plugin.ID)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 44, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 53, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -113,7 +122,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var6 templ.SafeURL
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(fmt.Sprintf("/admin/plugins/%s/diff", plugin.ID)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 45, Col: 73}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 54, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -126,7 +135,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("reviewApp('%s')", plugin.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 48, Col: 108}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 57, Col: 108}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 			if templ_7745c5c3_Err != nil {
@@ -139,7 +148,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(plugin.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 57, Col: 126}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 66, Col: 126}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -152,7 +161,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var9 templ.SafeURL
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(plugin.RepoURL))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 61, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 70, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -165,7 +174,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(plugin.RepoURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 61, Col: 155}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 70, Col: 155}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -178,7 +187,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(plugin.DeveloperID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 65, Col: 90}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 74, Col: 90}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -191,7 +200,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(plugin.CurrentVersion)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 69, Col: 138}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 78, Col: 138}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -204,7 +213,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(createdAt)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 73, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 82, Col: 69}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -217,7 +226,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(plugin.Description)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 77, Col: 83}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 86, Col: 83}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -241,7 +250,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 					var templ_7745c5c3_Var15 string
 					templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(v.Tag)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 95, Col: 88}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 104, Col: 88}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 					if templ_7745c5c3_Err != nil {
@@ -274,7 +283,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 						var templ_7745c5c3_Var16 string
 						templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(v.Changelog)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 103, Col: 89}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 112, Col: 89}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 						if templ_7745c5c3_Err != nil {
@@ -292,7 +301,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 					var templ_7745c5c3_Var17 string
 					templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(v.CreatedAt.Format("Jan 02, 2006"))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 105, Col: 107}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 114, Col: 107}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 					if templ_7745c5c3_Err != nil {
@@ -321,7 +330,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(scanReport.TotalIssues))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 123, Col: 246}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 132, Col: 246}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -339,7 +348,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(scanReport.ScannedFiles))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 128, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 137, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -352,7 +361,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(scanReport.TotalIssues))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 128, Col: 126}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 137, Col: 126}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -397,7 +406,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 					var templ_7745c5c3_Var23 string
 					templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(f.Severity)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 135, Col: 371}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 144, Col: 371}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 					if templ_7745c5c3_Err != nil {
@@ -410,7 +419,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 					var templ_7745c5c3_Var24 string
 					templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(f.File)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 136, Col: 93}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 145, Col: 93}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 					if templ_7745c5c3_Err != nil {
@@ -423,7 +432,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 					var templ_7745c5c3_Var25 string
 					templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(f.Line))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 136, Col: 116}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 145, Col: 116}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 					if templ_7745c5c3_Err != nil {
@@ -436,7 +445,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 					var templ_7745c5c3_Var26 string
 					templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(f.Pattern)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 137, Col: 98}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 146, Col: 98}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 					if templ_7745c5c3_Err != nil {
@@ -449,7 +458,7 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 					var templ_7745c5c3_Var27 string
 					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(f.Context)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 140, Col: 21}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 149, Col: 21}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 					if templ_7745c5c3_Err != nil {
@@ -474,41 +483,43 @@ func AdminPluginReview(username string, avatarLetter string, plugin models.Plugi
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if pluginStatus == "pending" {
+			if pluginStatus == "pending" || hasUnsignedVersions(plugin.Versions) {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<div class=\"lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-blue-100 dark:border-blue-900/30 overflow-hidden\" id=\"actions-panel\"><div class=\"px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-blue-50/30 dark:bg-blue-900/10\"><h2 class=\"text-lg font-bold text-gray-900 dark:text-white\">Review Actions</h2></div><div class=\"p-6\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-12\"><!-- Approve Form --><div class=\"space-y-4\"><div class=\"flex items-center gap-2 mb-2\"><div class=\"w-2 h-2 rounded-full bg-green-500\"></div><h3 class=\"font-bold text-gray-900 dark:text-white\">Approve Plugin</h3></div><div><label class=\"block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1\">Version to approve</label> <select x-model=\"approveVersion\" class=\"w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100\"><option value=\"\">Select a version...</option> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for _, v := range plugin.Versions {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<option value=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var28 string
-					templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.ResolveAttributeValue(v.Tag)
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 171, Col: 32}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var28)
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "\">")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var29 string
-					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(v.Tag)
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 171, Col: 42}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</option>")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
+					if v.Signature == "" {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<option value=\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var28 string
+						templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.ResolveAttributeValue(v.Tag)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 181, Col: 33}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var28)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var29 string
+						templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(v.Tag)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/admin_plugin_review.templ`, Line: 181, Col: 43}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</option>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
 					}
 				}
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "</select></div><div><label class=\"block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1\">Review comment (optional)</label> <textarea x-model=\"approveComment\" class=\"w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100\" rows=\"3\" placeholder=\"Code reviewed, no issues found...\"></textarea></div><button @click=\"approve()\" :disabled=\"loading || !approveVersion\" class=\"w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold shadow-md shadow-green-200 dark:shadow-none\"><template x-if=\"loading\"><svg class=\"animate-spin h-5 w-5 text-white\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\"><circle class=\"opacity-25\" cx=\"12\" cy=\"12\" r=\"10\" stroke=\"currentColor\" stroke-width=\"4\"></circle><path class=\"opacity-75\" fill=\"currentColor\" d=\"M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z\"></path></svg></template><span x-text=\"loading ? 'Processing...' : 'Approve and Sign'\">Approve and Sign</span></button></div><!-- Reject Form --><div class=\"space-y-4\"><div class=\"flex items-center gap-2 mb-2\"><div class=\"w-2 h-2 rounded-full bg-red-500\"></div><h3 class=\"font-bold text-gray-900 dark:text-white\">Reject Plugin</h3></div><div><label class=\"block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1\">Rejection reason</label> <textarea x-model=\"rejectReason\" class=\"w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100\" rows=\"6\" placeholder=\"Describe why this plugin is rejected...\"></textarea></div><button @click=\"reject()\" :disabled=\"loading || !rejectReason\" class=\"w-full flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 border-2 border-red-600 dark:border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold\"><template x-if=\"loading\"><svg class=\"animate-spin h-5 w-5 text-red-600\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\"><circle class=\"opacity-25\" cx=\"12\" cy=\"12\" r=\"10\" stroke=\"currentColor\" stroke-width=\"4\"></circle><path class=\"opacity-75\" fill=\"currentColor\" d=\"M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z\"></path></svg></template><span x-text=\"loading ? 'Processing...' : 'Reject Plugin'\">Reject Plugin</span></button></div></div></div></div>")

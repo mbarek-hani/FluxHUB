@@ -6,6 +6,15 @@ import (
 	"github.com/mbarek-hani/FluxHUB/views/layouts"
 )
 
+func hasUnsignedVersions(versions []models.Version) bool {
+	for _, v := range versions {
+		if v.Signature == "" {
+			return true
+		}
+	}
+	return false
+}
+
 templ AdminPluginReview(username string, avatarLetter string, plugin models.Plugin, scanReport models.ScanReport, pluginStatus string, createdAt string) {
 	@layouts.Admin(fmt.Sprintf("Review: %s", plugin.Name), username, avatarLetter, "plugins") {
 		<div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -150,7 +159,7 @@ templ AdminPluginReview(username string, avatarLetter string, plugin models.Plug
 				</div>
 			</div>
 			<!-- Action Panel -->
-			if pluginStatus == "pending" {
+			if pluginStatus == "pending" || hasUnsignedVersions(plugin.Versions) {
 				<div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-blue-100 dark:border-blue-900/30 overflow-hidden" id="actions-panel">
 					<div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-blue-50/30 dark:bg-blue-900/10">
 						<h2 class="text-lg font-bold text-gray-900 dark:text-white">Review Actions</h2>
@@ -168,7 +177,9 @@ templ AdminPluginReview(username string, avatarLetter string, plugin models.Plug
 									<select x-model="approveVersion" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
 										<option value="">Select a version...</option>
 										for _, v := range plugin.Versions {
-											<option value={ v.Tag }>{ v.Tag }</option>
+											if v.Signature == "" {
+												<option value={ v.Tag }>{ v.Tag }</option>
+											}
 										}
 									</select>
 								</div>

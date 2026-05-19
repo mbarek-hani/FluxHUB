@@ -76,7 +76,7 @@ func (dc *DeveloperController) Dashboard(c *gin.Context) {
 
 	// Stats
 	var pending, approved, rejected int64
-	database.DB.Model(&models.Plugin{}).Where("developer_id = ? AND status = ?", devID, "pending").Count(&pending)
+	database.DB.Model(&models.Plugin{}).Where("developer_id = ? AND (status = ? OR id IN (SELECT plugin_id FROM versions WHERE signature = ?))", devID, "pending", "").Count(&pending)
 	database.DB.Model(&models.Plugin{}).Where("developer_id = ? AND status = ?", devID, "approved").Count(&approved)
 	database.DB.Model(&models.Plugin{}).Where("developer_id = ? AND status = ?", devID, "rejected").Count(&rejected)
 
@@ -271,7 +271,10 @@ func (dc *DeveloperController) Submit(c *gin.Context) {
 		existingPlugin.Description = manifestData.Description
 		existingPlugin.Author = author
 		existingPlugin.Licence = licence
-		existingPlugin.Status = models.StatusPending // Reset status to pending for re-review on update
+		if existingPlugin.Status != models.StatusApproved {
+			existingPlugin.Status = models.StatusPending
+		}
+
 
 		if err := database.DB.Save(&existingPlugin).Error; err != nil {
 			slog.Error(fmt.Sprintf("[Dev] Failed to update plugin in DB: %v", err))
@@ -430,14 +433,20 @@ func (dc *DeveloperController) processPlugin(pluginID string) {
 		scanJSON = string(b)
 	}
 
+	var plugin models.Plugin
+	database.DB.First(&plugin, "id = ?", pluginID)
+
 	updates := map[string]interface{}{
-		"current_version": currentVersion,
-		"scan_result":     scanJSON,
+		"scan_result": scanJSON,
+	}
+	if plugin.CurrentVersion == "" || plugin.Status != models.StatusApproved {
+		updates["current_version"] = currentVersion
 	}
 
 	database.DB.Model(&models.Plugin{}).
 		Where("id = ?", pluginID).
 		Updates(updates)
+
 
 	for _, tag := range tags {
 		changelog, _ := dc.gitManager.ExtractChangelog(pluginID, tag)

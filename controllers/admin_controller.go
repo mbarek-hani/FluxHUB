@@ -269,8 +269,8 @@ func (ac *AdminController) ListPending(c *gin.Context) {
 	var plugins []models.Plugin
 
 	database.DB.
-		Where("status = ?", models.StatusPending).
 		Preload("Versions").
+		Where("status = ? OR id IN (SELECT plugin_id FROM versions WHERE signature = ?)", models.StatusPending, "").
 		Order("created_at ASC").
 		Find(&plugins)
 
