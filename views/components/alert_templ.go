@@ -29,15 +29,15 @@ func Alert(message string, variant string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var2 = []any{"p-4 rounded-lg mb-6 flex items-start gap-3",
-			templ.KV("bg-red-50 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800", variant == "error"),
-			templ.KV("bg-green-50 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800", variant == "success"),
-			templ.KV("bg-blue-50 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800", variant == "info")}
+		var templ_7745c5c3_Var2 = []any{"fixed top-6 right-6 z-50 max-w-sm w-full p-4 rounded-xl shadow-lg border flex items-start gap-3 backdrop-blur-md transition-all duration-300 hover:shadow-xl",
+			templ.KV("bg-red-50/90 text-red-800 border-red-200/60 dark:bg-red-950/95 dark:text-red-300 dark:border-red-900/60", variant == "error"),
+			templ.KV("bg-green-50/90 text-green-800 border-green-200/60 dark:bg-green-950/95 dark:text-green-300 dark:border-green-900/60", variant == "success"),
+			templ.KV("bg-blue-50/90 text-blue-800 border-blue-200/60 dark:bg-blue-950/95 dark:text-blue-300 dark:border-blue-900/60", variant == "info")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div x-data=\"{\n\t\t\tshow: true,\n\t\t\tremaining: 5000,\n\t\t\tlastTick: Date.now(),\n\t\t\ttimer: null,\n\t\t\tstartTimer() {\n\t\t\t\tthis.lastTick = Date.now();\n\t\t\t\tthis.timer = setInterval(() => {\n\t\t\t\t\tthis.remaining -= Date.now() - this.lastTick;\n\t\t\t\t\tthis.lastTick = Date.now();\n\t\t\t\t\tif (this.remaining <= 0) {\n\t\t\t\t\t\tthis.close();\n\t\t\t\t\t}\n\t\t\t\t}, 100);\n\t\t\t},\n\t\t\tstopTimer() {\n\t\t\t\tclearInterval(this.timer);\n\t\t\t\tthis.timer = null;\n\t\t\t},\n\t\t\tclose() {\n\t\t\t\tthis.stopTimer();\n\t\t\t\tthis.show = false;\n\t\t\t}\n\t\t}\" x-init=\"startTimer()\" x-show=\"show\" x-transition:enter=\"transition ease-out duration-300\" x-transition:enter-start=\"opacity-0 translate-y-2 sm:translate-y-0 sm:translate-x-4\" x-transition:enter-end=\"opacity-100 translate-x-0\" x-transition:leave=\"transition ease-in duration-200\" x-transition:leave-start=\"opacity-100 translate-x-0\" x-transition:leave-end=\"opacity-0 translate-x-4\" @mouseenter=\"stopTimer()\" @mouseleave=\"startTimer()\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -55,35 +55,35 @@ func Alert(message string, variant string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if variant == "error" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<svg class=\"w-5 h-5 flex-shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"></path></svg>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<svg class=\"w-5 h-5 flex-shrink-0 text-red-600 dark:text-red-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z\"></path></svg>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if variant == "success" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<svg class=\"w-5 h-5 flex-shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z\"></path></svg>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<svg class=\"w-5 h-5 flex-shrink-0 text-green-600 dark:text-green-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z\"></path></svg>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<svg class=\"w-5 h-5 flex-shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"></path></svg>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<svg class=\"w-5 h-5 flex-shrink-0 text-blue-600 dark:text-blue-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"></path></svg>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"flex-1 text-sm font-medium pr-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(message)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/components/alert.templ`, Line: 25, Col: 12}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/components/alert.templ`, Line: 59, Col: 12}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div><button @click=\"close()\" class=\"shrink-0 text-current opacity-50 hover:opacity-100 p-0.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-green-500/20\" aria-label=\"Close alert\"><svg class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
