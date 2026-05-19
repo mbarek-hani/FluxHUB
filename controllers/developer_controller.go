@@ -22,18 +22,15 @@ import (
 type DeveloperController struct {
 	sessions   *services.SessionStore
 	gitManager *services.GitManager
-	scanner    *services.CodeScanner
 }
 
 func NewDeveloperController(
 	sessions *services.SessionStore,
 	gm *services.GitManager,
-	sc *services.CodeScanner,
 ) *DeveloperController {
 	return &DeveloperController{
 		sessions:   sessions,
 		gitManager: gm,
-		scanner:    sc,
 	}
 }
 
@@ -92,17 +89,6 @@ func (dc *DeveloperController) Dashboard(c *gin.Context) {
 			}
 		}
 
-		// Parse scan result
-		scanIssues := 0
-		hasCritical := false
-		if p.ScanResult != "" {
-			var scan models.ScanReport
-			if json.Unmarshal([]byte(p.ScanResult), &scan) == nil {
-				scanIssues = scan.TotalIssues
-				hasCritical = scan.HasDangerousCode
-			}
-		}
-
 		rows[i] = pages.DevPluginRow{
 			ID:             p.ID,
 			Name:           p.Name,
@@ -114,8 +100,6 @@ func (dc *DeveloperController) Dashboard(c *gin.Context) {
 			UpdatedAt:      p.UpdatedAt.Format("Jan 02, 2006 15:04"),
 			VersionCount:   len(p.Versions),
 			Versions:       vRows,
-			ScanIssues:     scanIssues,
-			HasCritical:    hasCritical,
 		}
 	}
 
@@ -352,11 +336,6 @@ func (dc *DeveloperController) PluginDetail(c *gin.Context) {
 		return
 	}
 
-	var scanReport models.ScanReport
-	if plugin.ScanResult != "" {
-		json.Unmarshal([]byte(plugin.ScanResult), &scanReport)
-	}
-
 	vRows := make([]pages.DevPluginDetailVersion, len(plugin.Versions))
 	for i, v := range plugin.Versions {
 		vRows[i] = pages.DevPluginDetailVersion{
@@ -376,7 +355,6 @@ func (dc *DeveloperController) PluginDetail(c *gin.Context) {
 		plugin.CreatedAt.Format("January 02, 2006 15:04 UTC"),
 		plugin.UpdatedAt.Format("January 02, 2006 15:04 UTC"),
 		vRows,
-		scanReport,
 		fmt.Sprintf("/v1/plugins/download/%s", plugin.ID),
 	).Render(c.Request.Context(), c.Writer)
 }
@@ -408,8 +386,6 @@ func (dc *DeveloperController) UpdateProfile(c *gin.Context) {
 func (dc *DeveloperController) processPlugin(pluginID string) {
 	slog.Info(fmt.Sprintf("[Dev] Processing plugin %s", pluginID))
 
-	localPath := dc.gitManager.GetRepoPathForPlugin(pluginID)
-
 	// Since it is already cloned at localPath, we can read the tags
 	tags, err := dc.gitManager.GetTags(pluginID)
 	if err != nil {
@@ -422,16 +398,7 @@ func (dc *DeveloperController) processPlugin(pluginID string) {
 		currentVersion = tags[0]
 	}
 
-	scanReport, err := dc.scanner.ScanDirectory(localPath)
-	if err != nil {
-		slog.Info(fmt.Sprintf("[Dev] Scan failed for %s: %v", pluginID, err))
-	}
-
 	scanJSON := ""
-	if scanReport != nil {
-		b, _ := json.Marshal(scanReport)
-		scanJSON = string(b)
-	}
 
 	var plugin models.Plugin
 	database.DB.First(&plugin, "id = ?", pluginID)
@@ -476,17 +443,12 @@ func (dc *DeveloperController) APIGetPluginStatus(c *gin.Context) {
 		return
 	}
 
-	var scanReport models.ScanReport
-	if plugin.ScanResult != "" {
-		json.Unmarshal([]byte(plugin.ScanResult), &scanReport)
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"id":              plugin.ID,
 		"status":          plugin.Status,
 		"current_version": plugin.CurrentVersion,
-		"scan_issues":     scanReport.TotalIssues,
-		"has_critical":    scanReport.HasDangerousCode,
+		"scan_issues":     0,
+		"has_critical":    false,
 		"versions":        len(plugin.Versions),
 	})
 }

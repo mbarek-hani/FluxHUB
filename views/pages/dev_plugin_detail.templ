@@ -1,7 +1,6 @@
 package pages
 
 import (
-	"fmt"
 	"github.com/mbarek-hani/FluxHUB/views/layouts"
 	"github.com/mbarek-hani/FluxHUB/models"
 )
@@ -13,7 +12,7 @@ type DevPluginDetailVersion struct {
 	CreatedAt  string
 }
 
-templ DevPluginDetail(username string, avatarUrl string, plugin models.Plugin, pluginStatus string, createdAt string, updatedAt string, versions []DevPluginDetailVersion, scanReport models.ScanReport, downloadBase string) {
+templ DevPluginDetail(username string, avatarUrl string, plugin models.Plugin, pluginStatus string, createdAt string, updatedAt string, versions []DevPluginDetailVersion, downloadBase string) {
 	@layouts.Developer(plugin.Name, username, avatarUrl, "dashboard") {
 		<div class="mb-8">
 			<nav class="flex mb-2" aria-label="Breadcrumb">
@@ -136,56 +135,6 @@ templ DevPluginDetail(username string, avatarUrl string, plugin models.Plugin, p
 			}
 		</div>
 
-		<!-- Security Scan Report Panel -->
-		<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-8">
-			<div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex flex-wrap items-center gap-3">
-				<div class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white mr-auto">
-					<svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-						<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-					</svg>
-					Security Scan Report
-				</div>
-				
-				if scanReport.HasDangerousCode {
-					<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/50">Critical issues found</span>
-				} else if scanReport.TotalIssues > 0 {
-					<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800/50">{ fmt.Sprint(scanReport.TotalIssues) } warnings</span>
-				} else {
-					<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800/50">Clean</span>
-				}
-			</div>
-			<div class="p-6">
-				if scanReport.ScannedFiles > 0 {
-					<p class="text-xs text-gray-500 dark:text-gray-400 mb-6">
-						Scanned { fmt.Sprint(scanReport.ScannedFiles) } PHP files
-					</p>
-				}
-				
-				if len(scanReport.Findings) > 0 {
-					<div class="space-y-6">
-						for _, f := range scanReport.Findings {
-							<div class="bg-gray-50 dark:bg-gray-900/40 rounded-lg border border-gray-100 dark:border-gray-700/60 p-4">
-								<div class="flex flex-wrap items-center gap-3 mb-2">
-									if f.Severity == "danger" || f.Severity == "critical" {
-										<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-400 uppercase tracking-wider">{ f.Severity }</span>
-									} else {
-										<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-400 uppercase tracking-wider">{ f.Severity }</span>
-									}
-									<span class="text-xs font-mono text-gray-600 dark:text-gray-400 break-all">{ f.File }:{ fmt.Sprint(f.Line) }</span>
-									<code class="text-[10px] font-mono text-gray-400 dark:text-gray-500 ml-auto">{ f.Pattern }</code>
-								</div>
-								<div class="text-sm font-mono bg-white dark:bg-gray-950 p-3 rounded border border-gray-100 dark:border-gray-800 text-gray-800 dark:text-gray-300 overflow-x-auto whitespace-pre">
-									{ f.Context }
-								</div>
-							</div>
-						}
-					</div>
-				} else {
-					<div class="text-center py-8 text-gray-500 dark:text-gray-400">
-						No issues detected.
-					</div>
-				}
-			</div>
-		</div>
+
 	}
 }

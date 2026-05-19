@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +14,6 @@ type AdminController struct {
 	gitManager *services.GitManager
 	signer     *services.Signer
 	packager   *services.Packager
-	scanner    *services.CodeScanner
 }
 
 // NewAdminController crée une nouvelle instance du contrôleur admin
@@ -23,13 +21,11 @@ func NewAdminController(
 	gm *services.GitManager,
 	sg *services.Signer,
 	pk *services.Packager,
-	sc *services.CodeScanner,
 ) *AdminController {
 	return &AdminController{
 		gitManager: gm,
 		signer:     sg,
 		packager:   pk,
-		scanner:    sc,
 	}
 }
 
@@ -57,16 +53,8 @@ func (ac *AdminController) Review(c *gin.Context) {
 		return
 	}
 
-	// Désérialiser le rapport de scan
+	// Rapport de scan vide (fonctionnalité désactivée)
 	var scanReport models.ScanReport
-	if plugin.ScanResult != "" {
-		if err := json.Unmarshal([]byte(plugin.ScanResult), &scanReport); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Impossible de désérialiser le rapport de scan",
-			})
-			return
-		}
-	}
 
 	response := ReviewResponse{
 		Plugin:     plugin,
@@ -281,31 +269,9 @@ func (ac *AdminController) ListPending(c *gin.Context) {
 }
 
 // RescanPlugin - POST /v1/admin/rescan/:id
-// Relance l'analyse statique sur un plugin
+// Relance l'analyse statique sur un plugin (Désactivé)
 func (ac *AdminController) RescanPlugin(c *gin.Context) {
-	id := c.Param("id")
-
-	var plugin models.Plugin
-	if result := database.DB.First(&plugin, "id = ?", id); result.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Plugin non trouvé"})
-		return
-	}
-
-	repoPath := ac.gitManager.GetRepoPathForPlugin(plugin.ID)
-	scanReport, err := ac.scanner.ScanDirectory(repoPath)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "Erreur lors du re-scan",
-			"details": err.Error(),
-		})
-		return
-	}
-
-	scanJSON, _ := ac.scanner.ScanReportToJSON(scanReport)
-	database.DB.Model(&plugin).Update("scan_result", scanJSON)
-
 	c.JSON(http.StatusOK, gin.H{
-		"message":     "Re-scan effectué",
-		"scan_report": scanReport,
+		"message": "Le scan automatique est désactivé. FluxHUB s'appuie désormais uniquement sur la vérification humaine.",
 	})
 }

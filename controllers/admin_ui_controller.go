@@ -17,20 +17,17 @@ type AdminUIController struct {
 	gitManager *services.GitManager
 	signer     *services.Signer
 	packager   *services.Packager
-	scanner    *services.CodeScanner
 }
 
 func NewAdminUIController(
 	gm *services.GitManager,
 	sg *services.Signer,
 	pk *services.Packager,
-	sc *services.CodeScanner,
 ) *AdminUIController {
 	return &AdminUIController{
 		gitManager: gm,
 		signer:     sg,
 		packager:   pk,
-		scanner:    sc,
 	}
 }
 
@@ -174,17 +171,11 @@ func (ctrl *AdminUIController) PluginReview(c *gin.Context) {
 		return
 	}
 
-	var scanReport models.ScanReport
-	if plugin.ScanResult != "" {
-		json.Unmarshal([]byte(plugin.ScanResult), &scanReport)
-	}
-
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	pages.AdminPluginReview(
 		ctrl.getUsername(c),
 		ctrl.getAdmin(c).AdminAvatarLetter(),
 		plugin,
-		scanReport,
 		string(plugin.Status),
 		plugin.CreatedAt.Format("January 02, 2006 15:04 UTC"),
 	).Render(c.Request.Context(), c.Writer)

@@ -30,7 +30,6 @@ func main() {
 	database.Connect()
 
 	gitManager := services.NewGitManager(cfg.StoragePath)
-	scanner := services.NewCodeScanner()
 	signer, err := services.NewSigner(cfg.PrivateKeyPath)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Signer error: %v", err))
@@ -39,11 +38,11 @@ func main() {
 	packager := services.NewPackager(cfg.ZipsPath)
 	sessionStore := services.NewSessionStore(30 * 24 * time.Hour)
 
-	adminAPICtrl := controllers.NewAdminController(gitManager, signer, packager, scanner)
+	adminAPICtrl := controllers.NewAdminController(gitManager, signer, packager)
 	marketplaceCtrl := controllers.NewMarketplaceController(packager, signer)
 	authCtrl := controllers.NewAuthController(sessionStore)
-	adminUICtrl := controllers.NewAdminUIController(gitManager, signer, packager, scanner)
-	devCtrl := controllers.NewDeveloperController(sessionStore, gitManager, scanner)
+	adminUICtrl := controllers.NewAdminUIController(gitManager, signer, packager)
+	devCtrl := controllers.NewDeveloperController(sessionStore, gitManager)
 	oauthCtrl := controllers.NewOAuthController(cfg.GithubClientID, cfg.GithubClientSecret, cfg.GithubRedirectURL, sessionStore)
 
 	router := gin.New()
